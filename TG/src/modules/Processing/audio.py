@@ -2,6 +2,7 @@ import os
 import requests
 from TG.src.modules.Converters.audio_convert import convert_oga_to_wav
 from TG.src.modules.Converters.STT import STT
+from TG.src.sub_proccess import *
 
 
 def receive_audio(msg, bot):
@@ -42,4 +43,18 @@ def receive_audio(msg, bot):
     sml_model = os.path.join("TG", "Data", "Models", "vosk-model-small-ru-0.22")
 
     stt = STT(modelpath=sml_model)
-    stt.recognize_file(out_file)
+    speech = stt.recognize_file(out_file)
+    process_audio(speech, msg, bot)
+
+
+'''
+    Audio will be post processed, which will 
+    make it possible to call certain commands
+    using voice messages and audio files so
+    that all users may have the best experience
+'''
+
+
+def process_audio(audio, msg, bot):
+    if audio == 'старт' or 'начать' or 'привет':
+        start_func(msg, bot)

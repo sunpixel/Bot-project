@@ -1,10 +1,9 @@
 import os
 from telebot import types
 from sub_proccess import *
-import telebot
-
-
 from TG.src.modules.Processing.audio import receive_audio
+
+import telebot
 
 
 bot = telebot.TeleBot('8178448433:AAEJq-zOA7dMozyVvy6UU7RbsU87FU84cPI')
@@ -23,15 +22,7 @@ def process_audio(msg):
 def start(msg):
     clean_up()
     # Showing initial buttons
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-
-    btn_search = types.KeyboardButton('Search')
-    btn_main = types.KeyboardButton('Main')
-    btn_cart = types.KeyboardButton('Cart')
-    markup.row(btn_search)
-    markup.row(btn_main, btn_cart)
-    markup.add()
-    bot.send_message(msg.chat.id , 'Hi!!', reply_markup=markup)
+    start_func(msg, bot)
 
 @bot.message_handler(func=lambda message: True)
 def on_click(msg):
