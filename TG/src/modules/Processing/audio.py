@@ -38,8 +38,8 @@ def receive_audio(msg, bot):
 
     # Models website https://alphacephei.com/vosk/models
 
-    big_model = os.path.join("TG", "Data", "vosk-model-ru-0.42")
-    sml_model = os.path.join("TG", "Data", "vosk-model-small-ru-0.22")
+    big_model = os.path.join("TG", "Data", "Models", "vosk-model-ru-0.42")
+    sml_model = os.path.join("TG", "Data", "Models", "vosk-model-small-ru-0.22")
 
     stt = STT(modelpath=sml_model)
     stt.recognize_file(out_file)
