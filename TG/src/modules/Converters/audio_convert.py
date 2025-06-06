@@ -1,5 +1,6 @@
 import os
 import subprocess
+from fileinput import filename
 from pathlib import Path
 
 def convert_audio(input_file, output_file=None, output_format='wav'):
@@ -14,19 +15,18 @@ def convert_audio(input_file, output_file=None, output_format='wav'):
             raise ValueError(f"Unsupported output format: {output_format}. Allowed: {', '.join(allowed_output_formats)}")
 
         # Set output file name
-        input_path = Path(input_file)
+        input_path = str(Path(input_file))
         if output_file is None:
-            output_file = input_path.with_suffix(f'.{output_format}').name
+            output_path, ext = input_path.split('.')
+            output_file = output_path + f'.{output_format}'
         else:
             output_file = str(Path(output_file).with_suffix(f'.{output_format}'))
 
-        # Ensure unique filename if file already exists
-        counter = 1
         original_output = output_file
         while os.path.exists(output_file):
             base, ext = os.path.splitext(original_output)
-            output_file = f"{base}_{counter}{ext}"
-            counter += 1
+            output_file = f"{base}{ext}"
+
 
         # Build ffmpeg command
         ffmpeg_command = ['ffmpeg', '-y', '-i', input_file]

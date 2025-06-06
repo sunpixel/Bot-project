@@ -2,7 +2,7 @@ import os
 import requests
 from TG.src.modules.Converters.audio_convert import convert_audio
 from TG.src.modules.Converters.STT import STT
-from TG.src.modules.Converters.TTS import tts_play
+from TG.src.modules.Converters.TTS import tts_make
 from TG.src.sub_proccess import *
 
 
@@ -33,9 +33,7 @@ def receive_audio(msg, bot):
     # Perform conversion to wav format and removes old file
 
     out_file = os.path.join(download_dir, f"{file_id}.wav")
-    file_name = convert_audio(download_path, out_file, 'wav')
-    name = file_name.split(sep='/')
-    print(name)
+    convert_audio(download_path, out_file, 'wav')
     os.remove(download_path)
 
     # This code runs only after file is created (it is ensured)
@@ -47,7 +45,8 @@ def receive_audio(msg, bot):
 
     stt = STT(modelpath=sml_model)
     speech = stt.recognize_file(out_file)
-    process_audio(speech, msg, bot, file_name)
+
+    return speech, f'{file_id}.wav'
 
 
 '''
@@ -61,4 +60,5 @@ def receive_audio(msg, bot):
 def process_audio(audio, msg, bot, name):
     if audio == 'старт' or 'начать' or 'привет':
         start_func(msg, bot)
-        tts_play('Привет', bot, name=name)
+        return tts_make('Привет', filename=name)
+    return None

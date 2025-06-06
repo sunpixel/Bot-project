@@ -1,7 +1,8 @@
 import os
 from telebot import types
 from sub_proccess import *
-from TG.src.modules.Processing.audio import receive_audio
+from TG.src.modules.Processing.audio import receive_audio, process_audio
+from TG.src.modules.Converters.audio_convert import convert_audio
 
 import telebot
 
@@ -14,7 +15,12 @@ bot = telebot.TeleBot('8178448433:AAEJq-zOA7dMozyVvy6UU7RbsU87FU84cPI')
 
 @bot.message_handler(content_types=['audio', 'voice'])
 def process_audio(msg):
-    receive_audio(msg, bot, name=msg.message_id)
+    data = receive_audio(msg, bot)
+    v1 = process_audio(msg)
+    #v1 = process_audio(audio=data[0], msg=msg, bot=bot, name=data[1])
+    print(f'v1 = {v1}')
+    voice = convert_audio(v1, output_format='oga')
+    bot.send_voice(msg.chat.id, voice)
 
 # Bot start sequence
 

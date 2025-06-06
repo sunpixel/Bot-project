@@ -2,10 +2,16 @@ import os
 from telebot import types
 
 def clean_up():
-    directory = os.path.join('TG', 'Data', 'Downloads')
-    items = os.listdir(directory)
-    for item in items:
-        os.remove(os.path.join(directory, item))
+    down_dir = os.path.join('TG', 'Data', 'Downloads')
+    upld_dir = os.path.join('TG', 'Data', 'Uploads')
+    downloads = os.listdir(down_dir)
+    uploads = os.listdir(upld_dir)
+
+    array = [[downloads, down_dir], [uploads, upld_dir]]
+
+    for items in array:
+        for item in items[0]:
+            os.remove(os.path.join(items[1], item))
 
 def start_func(msg, bot):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
