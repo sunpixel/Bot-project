@@ -14,14 +14,13 @@ bot = telebot.TeleBot('8178448433:AAEJq-zOA7dMozyVvy6UU7RbsU87FU84cPI')
 
 @bot.message_handler(content_types=['audio', 'voice'])
 def process_audio(msg):
-    receive_audio(msg, bot)
+    receive_audio(msg, bot, name=msg.message_id)
 
 # Bot start sequence
 
 @bot.message_handler(commands=['start'])
 def start(msg):
     clean_up()
-    # Showing initial buttons
     start_func(msg, bot)
 
 @bot.message_handler(func=lambda message: True)
@@ -57,8 +56,6 @@ def get_photo(msg):
     markup.row(edit_btn, delete_btn)
     markup.add()
     bot.reply_to(msg, 'Wonderful', reply_markup=markup)
-
-
 
 
 '''
