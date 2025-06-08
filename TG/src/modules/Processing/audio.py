@@ -3,7 +3,6 @@ import requests
 from TG.src.modules.Converters.audio_convert import convert_audio
 from TG.src.modules.Converters.STT import STT
 from TG.src.modules.Converters.TTS import tts_make
-from TG.src.sub_proccess import *
 
 
 def receive_audio(msg, bot):
@@ -57,8 +56,8 @@ def receive_audio(msg, bot):
 '''
 
 
-def process_audio(audio, msg, bot, name):
-    if audio == 'старт' or 'начать' or 'привет':
-        start_func(msg, bot)
+def check_audio(text, msg, bot, name):
+    if text == 'старт' or 'начать' or 'привет':
         return tts_make('Привет', filename=name)
-    return None
+    else:
+        return None

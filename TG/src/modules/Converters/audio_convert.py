@@ -5,7 +5,7 @@ from pathlib import Path
 
 def convert_audio(input_file, output_file=None, output_format='wav'):
     try:
-        allowed_output_formats = {'wav', 'mp3', 'oga'}
+        allowed_output_formats = {'wav', 'mp3', 'oga', 'ogg'}
         output_format = output_format.lower()
 
         if not os.path.exists(input_file):
