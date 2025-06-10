@@ -10,7 +10,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # === CONFIG ===
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
-LLM_MODEL_PATH = os.path.abspath(os.path.join("TG", "Data", "Models", "phi-2")) # Can be downloaded here https://huggingface.co/microsoft/phi-2/tree/main
+LLM_MODEL_PATH = os.path.abspath(os.path.join("TG", "Data", "Models", "phi-2")).replace('\\', '/') # Can be downloaded here https://huggingface.co/microsoft/phi-2/tree/main
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # === LOAD MODELS ===
@@ -18,11 +18,21 @@ print("Loading embedding model...")
 embedder = SentenceTransformer(EMBED_MODEL_NAME)
 
 print("Loading local Phi-2 model...")
-tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
+
+tokenizer = AutoTokenizer.from_pretrained(
+    LLM_MODEL_PATH,
+    local_files_only=True,
+    trust_remote_code=True  # required for Phi-2
+)
+
 model = AutoModelForCausalLM.from_pretrained(
     LLM_MODEL_PATH,
-    torch_dtype=torch.float16 if DEVICE == "cuda" else torch.float32
+    torch_dtype=torch.float16 if DEVICE == "cuda" else torch.float32,
+    local_files_only=True,
+    trust_remote_code=True
 )
+
+
 model.to(DEVICE)
 
 # === LOAD QA DATA ===
