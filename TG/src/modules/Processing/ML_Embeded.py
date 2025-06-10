@@ -5,8 +5,9 @@ from sentence_transformers import SentenceTransformer
 import faiss
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-qa_data = os.path.join(script_dir, '..', '..', '..', 'Data', 'ML', 'QA_Base.json')
+qa_data = os.path.join(script_dir, '..', '..', '..', 'Data', 'ML', 'QA_Base_en.json')
 qa_data = os.path.normpath(qa_data)
+print(qa_data)
 
 
 # Load model and data
