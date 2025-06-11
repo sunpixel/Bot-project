@@ -26,7 +26,6 @@ def start_func(msg, bot):
 
     get_create_user([msg.from_user.id, msg.from_user.username])
 
-    types.InlineQuery
     btn_search = types.KeyboardButton('Search')
     btn_main = types.KeyboardButton('Main')
     btn_cart = types.KeyboardButton('Cart')

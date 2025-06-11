@@ -10,7 +10,7 @@ dimension = 384  # Dimension for all-MiniLM-L6-v2
 
 # 2. Database setup
 script_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(script_dir, '..', 'Data', 'DataBase', 'products.db')
+db_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', 'Data', 'DataBase', 'shop.db'))
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
