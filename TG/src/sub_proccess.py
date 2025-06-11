@@ -2,12 +2,10 @@ import os
 import sqlite3
 from telebot import types
 from TG.src.modules.Processing.audio import receive_audio, check_audio
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.abspath(os.path.join(script_dir, '..', 'Data', 'DataBase', 'shop.db'))
+from TG.src.config_manager import config
 
 def db_connection():
-    return sqlite3.connect(db_path)
+    return sqlite3.connect(config.db_path)
 
 def clean_up():
     down_dir = os.path.join('TG', 'Data', 'Downloads')
@@ -94,3 +92,45 @@ def get_create_user(user_data):
         ) VALUES (?, ?)
         ''', (user_id, username))
         conn.commit()
+
+def is_admin(user_data):
+
+    conn = db_connection()
+    cursor = conn.cursor()
+
+    user_id = int(user_data)
+
+    cursor.execute('''
+    SELECT * FROM admins WHERE user_id = ?
+    ''', (user_id,))
+
+    admin = cursor.fetchone()
+
+    if admin:
+        return True
+    return False
+
+def download_img():
+    markup = types.InlineKeyboardMarkup()
+    move_to_btn = types.InlineKeyboardButton('Go to URL', 'https://ya.ru')
+
+    # Callback_data means that a function will be called when this button is pressed
+
+    edit_btn = types.InlineKeyboardButton('Edit text', callback_data='edit')
+    delete_btn = types.InlineKeyboardButton('Delete photo', callback_data='delete')
+
+    '''
+        Each markup.row represents a different row
+        To have several buttons in one row add them 
+        as separate arguments into one line.
+        They will be displayed in their order from
+        left to right
+    '''
+
+    markup.row(move_to_btn)
+    markup.row(edit_btn, delete_btn)
+    markup.add()
+    return markup
+
+
+

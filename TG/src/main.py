@@ -1,11 +1,10 @@
 import os
 from telebot import types
 from sub_proccess import *
-
+from TG.src.config_manager import config
 import telebot
 
-
-bot = telebot.TeleBot('8178448433:AAEJq-zOA7dMozyVvy6UU7RbsU87FU84cPI')
+bot = telebot.TeleBot(config.get_api_key('telegram'))
 
 
 
@@ -36,25 +35,7 @@ def on_click(msg):
 
 @bot.message_handler(content_types=['photo'])
 def get_photo(msg):
-    markup = types.InlineKeyboardMarkup()
-    move_to_btn = types.InlineKeyboardButton('Go to URL', 'https://ya.ru')
-
-    # Callback_data means that a function will be called when this button is pressed
-
-    edit_btn = types.InlineKeyboardButton('Edit text', callback_data='edit')
-    delete_btn = types.InlineKeyboardButton('Delete photo', callback_data='delete')
-
-    '''
-        Each markup.row represents a different row
-        To have several buttons in one row add them 
-        as separate arguments into one line.
-        They will be displayed in their order from
-        left to right
-    '''
-
-    markup.row(move_to_btn)
-    markup.row(edit_btn, delete_btn)
-    markup.add()
+    markup = download_img()
     bot.reply_to(msg, 'Wonderful', reply_markup=markup)
 
 @bot.message_handler(commands=['t'])
