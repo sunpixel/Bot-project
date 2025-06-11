@@ -57,6 +57,9 @@ def get_photo(msg):
     markup.add()
     bot.reply_to(msg, 'Wonderful', reply_markup=markup)
 
+@bot.message_handler(commands=['t'])
+def test(msg):
+    print('test')
 
 '''
     It is impossible to delete

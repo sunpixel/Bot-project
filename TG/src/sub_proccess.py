@@ -24,15 +24,16 @@ def clean_up():
 def start_func(msg, bot):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    get_create_user([msg.from_user.id, msg.chat.id])
+    get_create_user([msg.from_user.id, msg.from_user.username])
 
+    types.InlineQuery
     btn_search = types.KeyboardButton('Search')
     btn_main = types.KeyboardButton('Main')
     btn_cart = types.KeyboardButton('Cart')
     markup.row(btn_search)
     markup.row(btn_main, btn_cart)
     markup.add()
-    bot.send_message(msg.chat.id , '', reply_markup=markup)
+    bot.send_message(msg.chat.id , 'Hi', reply_markup=markup)
 
 def audio(msg, bot):
     data = receive_audio(msg, bot)
@@ -77,17 +78,20 @@ def get_create_user(user_data):
     conn = db_connection()
     cursor = conn.cursor()
 
+    user_id = int(user_data[0])
+    username = str(user_data[1])
+
     cursor.execute(f'''
-    SELECT * FROM Users WHERE TG_User_ID = ?
-    ''', (user_data[0]))
+    SELECT * FROM Users WHERE user_id = ?
+    ''', (user_id,))
 
     user = cursor.fetchone()
 
     if not user:
         cursor.execute('''
         INSERT INTO Users (
-        TG_User_ID,
-        TG_Chat_ID
+        user_id,
+        username
         ) VALUES (?, ?)
-        ''', (user_data[0], user_data[1]))
-        connection.commit()
+        ''', (user_id, username))
+        conn.commit()

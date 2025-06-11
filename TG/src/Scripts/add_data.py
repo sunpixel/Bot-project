@@ -14,7 +14,7 @@ cursor.executescript('''
 CREATE TABLE IF NOT EXISTS Users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
-    cart_id INTEGER
+    username TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Cart (
@@ -27,19 +27,15 @@ CREATE TABLE IF NOT EXISTS Cart (
 CREATE TABLE IF NOT EXISTS Products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    description TEXT,
-    price REAL NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS Products_info (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_id INTEGER,
+    image BLOB,
     details TEXT,
+    speed REAL,
     capacity INTEGER,
     min_temp NUMERIC,
     max_temp NUMERIC,
     type TEXT,
-    FOREIGN KEY (product_id) REFERENCES Products (id)
+    price REAL NOT NULL,
+    embedding BLOB
 );
 
 CREATE TABLE IF NOT EXISTS admins (
