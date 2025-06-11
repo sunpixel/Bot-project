@@ -1,18 +1,21 @@
-import sqlite3
+import sqlite3, faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
-import faiss
-import os
+from typing import List, Union, Tuple
+from TG.src.modules.Optional.enums import ProductColumn, FilterOperator
+from TG.src.modules.Optional.filter_generator import build_where_clause
+from TG.src.config_manager import config
 
-# 1. Initialize components
+
+
 model = SentenceTransformer('all-MiniLM-L6-v2')
-dimension = 384  # Dimension for all-MiniLM-L6-v2
+dimension = 384
 
-# 2. Database setup
-script_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.abspath(os.path.join(script_dir, '..', '..', '..', 'Data', 'DataBase', 'shop.db'))
-conn = sqlite3.connect(db_path)
-cursor = conn.cursor()
+
+def db_connect():
+    return sqlite3.connect(config.db_path)
+
+
 
 # 3. FAISS index setup
 index = faiss.IndexFlatL2(dimension)
@@ -20,6 +23,9 @@ index = faiss.IndexFlatL2(dimension)
 
 def update_index():
     """Sync database entries with FAISS index"""
+
+    cursor = db_connect().cursor()
+
     cursor.execute("SELECT id, embedding FROM Products WHERE embedding IS NOT NULL")
     embeddings = []
     ids = []
@@ -36,16 +42,24 @@ def update_index():
 # Initial index update
 product_ids = update_index()
 
-
-def semantic_search(query, k=3):
-    """
-    Perform semantic search on products
+"""
+    Perform semantic search with optional filters
     Args:
         query: Search query string
         k: Number of results to return
+        filters: List of (column, operator, value) tuples using ProductColumn/FilterOperator enums
     Returns:
-        List of tuples with product details (name, details, speed, capacity, min_temp, max_temp, type, price)
-    """
+        List of product tuples
+"""
+
+def semantic_search(
+        query: str,
+        k: int = 3,
+        filters: List[Tuple[ProductColumn, FilterOperator, Union[str, float, List]]] = None
+    ) -> List[Tuple]:
+
+    cursor = db_connect().cursor()
+
     # Encode query
     query_embedding = model.encode([query])
 
@@ -53,64 +67,77 @@ def semantic_search(query, k=3):
     distances, indices = index.search(np.array(query_embedding), k)
 
     # Get results from database
-    results = []
+    results1 = []
     for idx in indices[0]:
         if idx >= 0:  # FAISS returns -1 for empty slots
             product_id = product_ids[idx]
-            cursor.execute(
-                """SELECT name, details, speed, capacity, min_temp, max_temp, type, price 
-                   FROM Products WHERE id = ?""",
-                (product_id,)
-            )
-            results.append(cursor.fetchone())
 
-    return results
+            # Build base query
+            base_query = """
+                SELECT name, details, speed, capacity, min_temp, max_temp, type, price 
+                FROM Products WHERE id = ?
+            """
+            query_params = [product_id]
+
+            # Add additional filters if provided
+            if filters:
+                where_clause, filter_params = build_where_clause(filters)
+                if where_clause:
+                    base_query = base_query.replace("WHERE id = ?", f"WHERE id = ? AND {where_clause[6:]}")
+                    query_params.extend(filter_params)
+
+            cursor.execute(base_query, query_params)
+            if result := cursor.fetchone():
+                results1.append(result)
+
+    return results1
 
 
-def update_product_embedding(product_id):
-    """
-    Generate and update embedding for a specific product
-    Args:
-        product_id: ID of the product to update
-    """
-    # Get product data
+def update_product_embedding(product_id: int):
+    conn = db_connect()
+    cursor = conn.cursor()
+    """Generate and update embedding for a specific product"""
     cursor.execute(
         """SELECT name, details, speed, capacity, min_temp, max_temp, type 
            FROM Products WHERE id = ?""",
         (product_id,)
     )
-    product_data = cursor.fetchone()
-
-    if product_data:
-        # Generate text for embedding
+    if product_data := cursor.fetchone():
         text_parts = [
             product_data[0],  # name
             product_data[1],  # details
-            f"Speed: {product_data[2]}",  # speed
-            f"Capacity: {product_data[3]}",  # capacity
-            f"Temperature range: {product_data[4]} to {product_data[5]}",  # temp range
-            f"Type: {product_data[6]}"  # type
+            f"Speed: {product_data[2]}",
+            f"Capacity: {product_data[3]}",
+            f"Temperature range: {product_data[4]} to {product_data[5]}",
+            f"Type: {product_data[6]}"
         ]
         text = " ".join(str(part) for part in text_parts if part)
-
-        # Generate and store embedding
         embedding = model.encode([text])[0]
         cursor.execute(
             "UPDATE Products SET embedding = ? WHERE id = ?",
             (embedding.tobytes(), product_id)
         )
         conn.commit()
-        update_index()  # Refresh index
+        update_index()
 
 
 def update_all_product_embeddings():
-    """Update embeddings for all products in the database"""
+    cursor = db_connect().cursor()
+    """Update embeddings for all products"""
     cursor.execute("SELECT id FROM Products")
-    product_ids = [row[0] for row in cursor.fetchall()]
-
-    for product_id in product_ids:
+    for (product_id,) in cursor.fetchall():
         update_product_embedding(product_id)
 
-# Example usage:
-# update_all_product_embeddings()  # Run this when you want to update all embeddings
-# results = semantic_search("fast freezer with large capacity")
+'''
+# Example usage
+if __name__ == "__main__":
+    # Example filtered search (assuming enums are imported)
+    results = semantic_search(
+        "industrial freezer",
+        filters=[
+            (ProductColumn.PRICE, FilterOperator.LESS, 1000),
+            (ProductColumn.CAPACITY, FilterOperator.GREATER, 50),
+            (ProductColumn.TYPE, FilterOperator.EQUAL, "freezer")
+        ]
+    )
+'''
