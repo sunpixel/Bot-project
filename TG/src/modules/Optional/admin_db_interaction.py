@@ -1,0 +1,121 @@
+import sqlite3
+from TG.src.config_manager import config
+
+def make_connection():
+    return sqlite3.connect(config.db_path)
+
+def check_existence(table, parameter, value):
+    conn = make_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(f'''
+    SELECT * FROM {table} WHERE {parameter} = ?
+    ''', (value,))
+
+    return cursor.fetchone()
+
+def check_command(user, command):
+    commands = str(user[2]).split(',')
+    for i in commands:
+        if i == command:
+            return True
+    return False
+
+def data_exists(table_name, column_value_pairs):
+    """Check if a record exists based on column-value pairs."""
+    conn = make_connection()
+    cursor = conn.cursor()
+    try:
+        where_clause = " AND ".join([f"{col} = ?" for col in column_value_pairs.keys()])
+        query = f"SELECT 1 FROM {table_name} WHERE {where_clause}"
+        cursor.execute(query, tuple(column_value_pairs.values()))
+        if cursor.fetchone():
+            return True
+        else: return False
+    finally:
+        conn.close()
+
+def add_new_admin(user_data):
+    conn = make_connection()
+    cursor = conn.cursor()
+
+    # Allows for easy setup of all the commands available to admin
+
+    user_id = int(user_data[0])
+    allowed_commands = lambda arr: ",".join(arr)
+
+    user = check_existence('admins', 'user_id', user_id)
+
+    if not user or not check_command([2], 'add_admin'):
+        conn.close()
+        return f'Permission denied for user {user_id}'
+
+    try:
+        cursor.execute('''
+        INSERT INTO admins (user_id, commands)
+        VALUES (?, ?)
+        ''', (user_id, allowed_commands))
+        conn.commit()
+        return (f'User {user_id} added to admins with'
+                f'{allowed_commands}')
+    except Exception as e:
+        print(f'Error: {e}')
+        return f'User {user_id} already exists'
+    finally:
+        conn.close()
+
+def delete_admin(user_data):
+    conn = make_connection()
+    cursor = conn.cursor()
+    user_id = int(user_data[0])
+
+    user = check_existence('admins', 'user_id', user_id)
+
+    if not user or not check_command([2], 'delete_admin'):
+        conn.close()
+        return f'Permission denied for user {user_id}'
+
+    try:
+        cursor.execute('''
+        DELETE FROM admins WHERE user_id = ?
+        ''', (user_id,))
+        conn.commit()
+        return f'User {user_id} successfully deleted from admins'
+    except Exception as e:
+        conn.rollback()
+        print(f'Error: {e}')
+        return f'An error has occurred.'
+    finally:
+        conn.close()
+
+
+'''
+    Some of the entries are performed automatically
+    on USER interaction
+    on USER ADD_TO_CART
+    on USER BUTTON_ACTION
+'''
+
+def add_new_entry(entry_table, entry_data, user_id):
+    conn = make_connection()
+    cursor = conn.cursor()
+
+    admin = check_existence('admins', 'user_id', user_id)
+
+    if not admin or not check_command(admin[2], 'new_entry'):
+        conn.close()
+        return f'Permission denied for user {user_id}'
+
+    try:
+        columns = ', '.join(entry_data.keys())
+        values = ', '.join(['?'] * len(entry_data))
+        cursor.execute(f'''
+        INSERT INTO {entry_table} ({columns})
+        VALUES ({values})
+        ''', tuple(entry_data.values()))
+        return f'Data successfully added to {entry_table}'
+
+    except Exception as e:
+        print(f'Error: {e}')
+    finally:
+        conn.close()

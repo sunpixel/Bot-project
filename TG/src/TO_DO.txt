@@ -1,0 +1,65 @@
+On User action:
+    - Main menu:
+        -Send message that contains:
+            - IMG
+            - Name
+            - Clickable BUTTONS
+                - Buy now
+                    - Transfer to payment page (not implemented)
+                - Add To Cart
+                    - Will add 1 product of this product to the cart
+                - More info (Will send additional data and delete extra msgs)
+                    - This button will send all available data
+                    structured for the product like this:
+                        - Name
+                        - Capacity
+                        - Type
+                        - etc...
+                    - Send 3 clickable buttons
+                        - Buy now
+                            - Transfer to payment page (not implemented)
+                        - Add to cart
+                            - Will add 1 product of this type to the cart
+                        - Back
+                            - Will resend 10 last msgs and delete this one
+    - Cart:
+        - Delete Extra messages
+        - Send a message:
+            - name and amount of item in it
+                - MAYBE allow for it to be clickable
+                and redirect to the products page
+            - Clickable buttons:
+                - Buy
+                    - Transfer to payment screen
+                - Back
+                    - Returns to MAIN menu
+    - Search:
+        - Send a message for DB search.
+        - Process user input and perform DB search
+        - Send RESULT(S)
+
+
+On admin command:
+    - Bot will check if user is admin and deny access if not
+    - Send message with Clickable buttons:
+        - Each button will represent all admin commands
+        (regardless of command permission that admin has)
+        - Functionality of buttons may vary depending on task
+            - add_admin
+                - Can send a list of all user_id and usernames in DB
+                for easier admin add or manual user_id entry
+            - delete_admin
+                - Select from list of user_id in admin list
+
+            - new_entry
+                - Will ask what entry to add
+                    - Send different amount of data to enter
+                    depending on the table data is entered to
+                    - Will send data for further processing and
+                    enter all data into DB if it does not exist
+            - modify_entry
+                - Provided entry ID, will modify the said entry
+                any data can be modified except ADMIN
+            - delete_entry
+                - Provided entry id, will delete said entry
+                from DB.

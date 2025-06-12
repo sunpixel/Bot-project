@@ -1,0 +1,7 @@
+add_admin
+delete_admin
+
+new_entry
+modify_entry
+delete_entry
+

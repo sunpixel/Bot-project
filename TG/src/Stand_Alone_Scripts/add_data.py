@@ -1,49 +1,9 @@
 import sqlite3
-import os
+from TG.src.config_manager import config
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.abspath(os.path.join(script_dir, '..', '..', 'Data', 'DataBase', 'shop.db'))
-print(db_path)
+conn = sqlite3.connect(config.db_path)
+cursor = conn.cursor()
 
-connection = sqlite3.Connection(db_path)
-cursor = connection.cursor()
+cursor.execute('''
 
-# Create all tables in a DB and make connections
-
-cursor.executescript('''
-CREATE TABLE IF NOT EXISTS Users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    username TEXT
-);
-
-CREATE TABLE IF NOT EXISTS Cart (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    items TEXT,
-    user_id INTEGER,
-    FOREIGN KEY (user_id) REFERENCES Users (id)
-);
-
-CREATE TABLE IF NOT EXISTS Products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    image BLOB,
-    details TEXT,
-    speed REAL,
-    capacity INTEGER,
-    min_temp NUMERIC,
-    max_temp NUMERIC,
-    type TEXT,
-    price REAL NOT NULL,
-    embedding BLOB
-);
-
-CREATE TABLE IF NOT EXISTS admins (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-user_id INTEGER NOT NULL,
-commands TEXT
-)
 ''')
-
-connection.commit()
-connection.close()
