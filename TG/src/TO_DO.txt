@@ -22,6 +22,10 @@ On User action:
                             - Will add 1 product of this type to the cart
                         - Back
                             - Will resend 10 last msgs and delete this one
+                - Previous Page
+                    - Will load 10 previous products if available
+                - Next Page
+                    - Will load 10 next products if available
     - Cart:
         - Delete Extra messages
         - Send a message:

@@ -117,5 +117,7 @@ def add_new_entry(entry_table, entry_data, user_id):
 
     except Exception as e:
         print(f'Error: {e}')
+        return 'Error occurred'
+
     finally:
         conn.close()
