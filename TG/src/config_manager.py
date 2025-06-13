@@ -22,6 +22,9 @@ class ConfigManager:
         self.config['database'] = {
             'path': '../../Data/DataBase/shop.db'
         }
+        self.config['datapath'] = {
+            'path': '../../Data/'
+        }
         self.config['embeddings'] = {
             'model_name': 'all-MiniLM-L6-v2',
             'dimension': '384'
@@ -45,6 +48,12 @@ class ConfigManager:
     def db_path(self) -> str:
         """Get resolved database path"""
         raw_path = self.config.get('database', 'path')
+        return str(Path(__file__).parent.joinpath(raw_path).resolve())
+
+    @property
+    def data_path(self) -> str:
+        """Get resolved data path"""
+        raw_path = self.config.get('datapath', 'path')
         return str(Path(__file__).parent.joinpath(raw_path).resolve())
 
     @property

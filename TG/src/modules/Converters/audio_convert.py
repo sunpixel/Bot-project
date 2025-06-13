@@ -4,6 +4,7 @@ from fileinput import filename
 from pathlib import Path
 
 def convert_audio(input_file, output_file=None, output_format='wav'):
+    print(f'input file: {input_file}')
     try:
         allowed_output_formats = {'wav', 'mp3', 'oga', 'ogg'}
         output_format = output_format.lower()
@@ -13,14 +14,15 @@ def convert_audio(input_file, output_file=None, output_format='wav'):
 
         if output_format not in allowed_output_formats:
             raise ValueError(f"Unsupported output format: {output_format}. Allowed: {', '.join(allowed_output_formats)}")
-
         # Set output file name
-        input_path = str(Path(input_file))
+        input_path = str(Path(input_file).resolve())
+        print('passed')
         if output_file is None:
             output_path, ext = input_path.split('.')
             output_file = output_path + f'.{output_format}'
         else:
             output_file = str(Path(output_file).with_suffix(f'.{output_format}'))
+
 
         original_output = output_file
         while os.path.exists(output_file):
@@ -30,18 +32,20 @@ def convert_audio(input_file, output_file=None, output_format='wav'):
 
         # Build ffmpeg command
         ffmpeg_command = ['ffmpeg', '-y', '-i', input_file]
-
+        print('passed')
         if output_format == 'wav':
             ffmpeg_command += ['-acodec', 'pcm_s16le', '-ar', '16000', '-ac', '1']
         elif output_format == 'mp3':
             ffmpeg_command += ['-codec:a', 'libmp3lame', '-qscale:a', '2']
         elif output_format == 'oga':
             ffmpeg_command += ['-c:a', 'libopus']
+        print('passed1')
 
         ffmpeg_command.append(output_file)
 
         # Run conversion
         subprocess.run(ffmpeg_command, check=True)
+
 
         print(f"✅ Created new {output_format.upper()} file: {output_file}")
         return output_file
