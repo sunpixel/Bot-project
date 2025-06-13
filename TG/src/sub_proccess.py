@@ -138,13 +138,6 @@ def main_menu_data(limit = 10, offset = 0):
     conn = db_connection()
     cursor = conn.cursor()
 
-    cursor.execute(f'''
-    select count(*) from Products
-    ''')
-
-    total = cursor.fetchone()[0]
-    print(total)
-
     cursor.execute(f'\n'
                    f'    select * from Products\n'
                    f'    limit {limit} offset {offset}\n'
@@ -158,7 +151,7 @@ def main_menu_data(limit = 10, offset = 0):
         display_data.append(data)
 
 
-    return display_data, total
+    return display_data
 
 def main_menu_msg(data, data_set_atr):
     limit = data_set_atr[0]
@@ -210,6 +203,7 @@ def main_menu_msg(data, data_set_atr):
 def extra_menu_message(total, limit, offset):
     markup = types.InlineKeyboardMarkup()
     data = []
+    print(total,limit,offset)
     if offset // 10 != 0:
         btn_previous_page = types.InlineKeyboardButton('⏪ Previous page', callback_data='previous_page')
         data.append(btn_previous_page)
@@ -234,3 +228,24 @@ def extra_menu_message(total, limit, offset):
     return markup
 
     # markup.row(btn_previous_page, btn_next_page)
+def main_menu_handler(bot, msg, data_set_atr):
+    limit = data_set_atr[0]
+    offset = data_set_atr[1]
+    total = data_set_atr[2]
+    print(f'Total1: {total}')
+
+    menu_data = main_menu_data(limit, offset)
+    for data in menu_data:
+        markup = main_menu_msg(data, [limit, offset, total])
+        bot.send_message(msg.chat.id, str(data['name']), reply_markup=markup, parse_mode="HTML")
+    markup = extra_menu_message(total, limit, offset)
+    bot.send_message(msg.chat.id, '-' * 20, reply_markup=markup, parse_mode="HTML")
+
+def amount_in_table(table_name):
+    conn = db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f'\n'
+                   f'    select count(*) from {table_name}\n'
+                   f'    ')
+    total = cursor.fetchone()[0]
+    return total

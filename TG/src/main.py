@@ -10,7 +10,7 @@ bot = telebot.TeleBot(config.get_api_key('telegram'))
 
 total = 0
 offset = 0
-limit = 0
+limit = 10
 
 '''Only this fue universally used variables are to be GLOBAL'''
 
@@ -39,16 +39,10 @@ def on_click(msg):
         global total
         global limit
 
-        limit = 10
+        total = amount_in_table('Products')
 
         bot.delete_message(msg.chat.id, msg.message_id)
-        menu_data, total = main_menu_data(limit, offset)
-        for data in menu_data:
-            print(data)
-            markup = main_menu_msg(data, [limit, offset, total])
-            bot.send_message(msg.chat.id, str(data['name']), reply_markup=markup, parse_mode="HTML")
-        markup = extra_menu_message(total, limit, offset)
-        bot.send_message(msg.chat.id, '-'*20, reply_markup=markup, parse_mode="HTML")
+        main_menu_handler(bot, msg, [limit, offset, total])
 
     elif msg.text == 'Cart':
         bot.delete_message(msg.chat.id, msg.message_id)
@@ -73,17 +67,30 @@ def test(msg):
 
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_msg(callback):
+    global offset
+    global total
+
+    total = amount_in_table('Products')
+    print('Total:', total)
+
     if callback.data == 'delete':
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
         bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
     elif callback.data == 'edit':
         bot.edit_message_text('Edit text', callback.message.chat.id, callback.message.message_id)
     elif callback.data == 'previous_page':
-        bot.delete_messages(callback.message.chat.id, list(range(callback.message.message_id - 10, callback.message.message_id)))
-        print('Messages deleted page switched to previous page')
+        bot.delete_messages(callback.message.chat.id, list(range(callback.message.message_id - 10, callback.message.message_id + 1)))
+        if offset < 0: offset = 0
+        else: offset -= 10
+        main_menu_handler(bot, callback.message, [limit, offset, total])
     elif callback.data == 'next_page':
-        bot.delete_messages(callback.message.chat.id, list(range(callback.message.message_id - 10, callback.message.message_id)))
-        print('Messages deleted page switched to next page')
+
+        bot.delete_messages(callback.message.chat.id, list(range(callback.message.message_id - 10, callback.message.message_id + 1)))
+        if offset < total:
+            print('entered')
+            offset += 10
+        print(offset)
+        main_menu_handler(bot, callback.message, [limit, offset, total])
 
 
 bot.infinity_polling()
