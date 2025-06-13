@@ -30,7 +30,8 @@ def start_func(msg, bot):
     markup.row(btn_search)
     markup.row(btn_main, btn_cart)
     markup.add()
-    bot.send_message(msg.chat.id , 'Hi', reply_markup=markup)
+    message = bot.send_message(msg.chat.id , 'Hi', reply_markup=markup)
+    return message.message_id
 
 def audio(msg, bot):
     clean_up()
@@ -38,7 +39,7 @@ def audio(msg, bot):
     v1 = check_audio(data[0], msg, bot, data[1])
     with open(v1, 'rb') as voice_file:
         try:
-            bot.send_voice(msg.chat.id, voice_file)
+            message = bot.send_voice(msg.chat.id, voice_file)
         except Exception as e:
             bot.delete_message(msg.chat.id, msg.message_id)
             markup = types.InlineKeyboardMarkup()
@@ -50,13 +51,14 @@ def audio(msg, bot):
             markup.row(privacy_btn)
             markup.row(contact_btn)
             print(e)
-            bot.send_message(
+            message = bot.send_message(
                 msg.chat.id,
                 "<b>An error has occurred while sending your voice message.</b>\n\n"
                 "Please use the buttons below to get help with fixing common issues:",
                 reply_markup=markup,
                 parse_mode="HTML"
             )
+    return message.message_id
 
 def db_select_all_data(table):
     # Only to be used once per THREAD (function)
@@ -69,6 +71,7 @@ def db_select_all_data(table):
     ''')
 
     data = cursor.fetchall()
+    conn.close()
     print(data)
 
 def get_create_user(user_data):
@@ -93,6 +96,7 @@ def get_create_user(user_data):
         ) VALUES (?, ?)
         ''', (user_id, username))
         conn.commit()
+        conn.close()
 
 def is_admin(user_data):
 
@@ -150,7 +154,7 @@ def main_menu_data(limit = 10, offset = 0):
         data = {'name': row[1], 'price': row[2]}
         display_data.append(data)
 
-
+    conn.close()
     return display_data
 
 def main_menu_msg(data, data_set_atr):
@@ -232,14 +236,20 @@ def main_menu_handler(bot, msg, data_set_atr):
     limit = data_set_atr[0]
     offset = data_set_atr[1]
     total = data_set_atr[2]
-    print(f'Total1: {total}')
+    msg_ids = []
+    text_data = []
 
     menu_data = main_menu_data(limit, offset)
     for data in menu_data:
         markup = main_menu_msg(data, [limit, offset, total])
-        bot.send_message(msg.chat.id, str(data['name']), reply_markup=markup, parse_mode="HTML")
+        message = bot.send_message(msg.chat.id, str(data['name']), reply_markup=markup, parse_mode="HTML")
+        text_data.append(message.text)
+        msg_ids.append(int(message.message_id))
     markup = extra_menu_message(total, limit, offset)
-    bot.send_message(msg.chat.id, '-' * 20, reply_markup=markup, parse_mode="HTML")
+    message = bot.send_message(msg.chat.id, '-' * 20, reply_markup=markup, parse_mode="HTML")
+    text_data.append(message.text)
+    msg_ids.append(int(message.message_id))
+    return msg_ids, text_data
 
 def amount_in_table(table_name):
     conn = db_connection()
@@ -248,4 +258,16 @@ def amount_in_table(table_name):
                    f'    select count(*) from {table_name}\n'
                    f'    ')
     total = cursor.fetchone()[0]
+    conn.close()
     return total
+
+def get_specific_data(param):
+    conn = db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM Products WHERE name = ?', (param,))
+
+    product = cursor.fetchone()
+
+    conn.close()
+    return product
