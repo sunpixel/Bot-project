@@ -1,8 +1,9 @@
 import os
+import telebot
 from telebot import types
+from TG.src.modules.Templates.db_data_templates import products_template
 from sub_proccess import *
 from TG.src.config_manager import config
-import telebot
 from collections import defaultdict
 
 bot = telebot.TeleBot(config.get_api_key('telegram'))
@@ -64,6 +65,7 @@ def get_user_session(user_id):
 @bot.message_handler(commands=['start'])
 def start(msg):
     session = get_user_session(msg.from_user.id)
+    session.add_message_id(msg.message_id)
     session.clean_messages(msg.chat.id)
     session.clear_text_data()
     bot.delete_message(msg.chat.id, msg.message_id)
@@ -82,6 +84,7 @@ def on_click(msg):
     elif msg.text == 'Main':
         session.total = amount_in_table('Products')
         bot.delete_message(msg.chat.id, msg.message_id)
+        session.clean_messages(msg.chat.id)
 
         # Get both lists from main_menu_handler
         msg_ids, text_items = main_menu_handler(bot, msg, [session.limit, session.offset, session.total])
@@ -130,12 +133,18 @@ def callback_msg(callback):
 
     elif callback.data == 'more_info':
         msg_id = callback.message.message_id
-        session.clean_messages(callback.message.chat.id)
         db_search = session.text_data[session.message_ids.index(msg_id)]
-
-
-
-
+        data = get_specific_data(db_search)
+        i = 0
+        for key in products_template.keys():
+            products_template[key] = data[i]
+            i += 1
+        session.clean_messages(callback.message.chat.id)
+        text = ''
+        for key, value in products_template.items():
+            text += f"{key}: {value}\n"
+        message = bot.send_message(callback.message.chat.id, text)
+        session.add_message_id(message.message_id)
 
 
 bot.infinity_polling()

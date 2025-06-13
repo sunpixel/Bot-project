@@ -16,3 +16,17 @@ cart_template = {
     # This is a connected list with Users
     'user_id': None
 }
+
+products_template = {
+    'id': None,
+    'name': None,
+    'image': None,
+    'details': None,
+    'speed': None,
+    'capacity': None,
+    'min_temp': None,
+    'max_temp': None,
+    'type': None,
+    'price': None,
+    'embedding': None,
+}
