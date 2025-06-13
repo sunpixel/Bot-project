@@ -8,8 +8,8 @@ def db_connection():
     return sqlite3.connect(config.db_path)
 
 def clean_up():
-    down_dir = os.path.join('TG', 'Data', 'Downloads')
-    upld_dir = os.path.join('TG', 'Data', 'Uploads')
+    down_dir = os.path.abspath(os.path.join(config.data_path, 'Downloads'))
+    upld_dir = os.path.abspath(os.path.join(config.data_path, 'Uploads'))
     downloads = os.listdir(down_dir)
     uploads = os.listdir(upld_dir)
 
@@ -33,6 +33,7 @@ def start_func(msg, bot):
     bot.send_message(msg.chat.id , 'Hi', reply_markup=markup)
 
 def audio(msg, bot):
+    clean_up()
     data = receive_audio(msg, bot)
     v1 = check_audio(data[0], msg, bot, data[1])
     with open(v1, 'rb') as voice_file:
@@ -133,4 +134,103 @@ def download_img():
     return markup
 
 
+def main_menu_data(limit = 10, offset = 0):
+    conn = db_connection()
+    cursor = conn.cursor()
 
+    cursor.execute(f'''
+    select count(*) from Products
+    ''')
+
+    total = cursor.fetchone()[0]
+    print(total)
+
+    cursor.execute(f'\n'
+                   f'    select * from Products\n'
+                   f'    limit {limit} offset {offset}\n'
+                   f'    ')
+
+    data = cursor.fetchall()
+
+    display_data = []
+    for row in data:
+        data = {'name': row[1], 'price': row[2]}
+        display_data.append(data)
+
+
+    return display_data, total
+
+def main_menu_msg(data, data_set_atr):
+    limit = data_set_atr[0]
+    offset = data_set_atr[1]
+    total = data_set_atr[2]
+
+    markup = types.InlineKeyboardMarkup()
+
+    btn_add_to_cart = types.InlineKeyboardButton(
+        text='🛒 Add to Cart 🛒',
+        callback_data='add_to_cart'
+    )
+
+    btn_buy_now = types.InlineKeyboardButton(
+        text='🔥 Buy Now 🔥',
+        callback_data='buy_now'
+    )
+
+    btn_more_info = types.InlineKeyboardButton(
+        text='❓ More Info ❓',
+        callback_data='more_info'
+    )
+
+    markup.row(btn_add_to_cart, btn_buy_now)
+    markup.row(btn_more_info)
+
+    # Will be used ONCE as A Separate MSG SENT!!!
+
+    if offset // 10 != 0:
+        btn_previous_page = types.InlineKeyboardButton('⏪ Previous page', callback_data='previous_page')
+    '''
+        Will not be shown initially but will be shown
+        on each other attempt
+    '''
+    if total - offset <= limit:
+        btn_next_page = types.InlineKeyboardButton('Next page ⏩', callback_data='next_page')
+    '''
+        Should go like this:
+        First will be 30 - 0 = 30 WORKS
+        Second will be 30 - 10 = 20 WORKS
+        Third will be 30 - 20 = 10 STOPS
+    '''
+    # markup.row(btn_previous_page, btn_next_page)
+
+    markup.add()
+
+    return markup
+
+def extra_menu_message(total, limit, offset):
+    markup = types.InlineKeyboardMarkup()
+    data = []
+    if offset // 10 != 0:
+        btn_previous_page = types.InlineKeyboardButton('⏪ Previous page', callback_data='previous_page')
+        data.append(btn_previous_page)
+    '''
+        Will not be shown initially but will be shown
+        on each other attempt
+    '''
+    if total - offset >= limit:
+        btn_next_page = types.InlineKeyboardButton('Next page ⏩', callback_data='next_page')
+        data.append(btn_next_page)
+    '''
+        Should go like this:
+        First will be 30 - 0 = 30 WORKS
+        Second will be 30 - 10 = 20 WORKS
+        Third will be 30 - 20 = 10 STOPS
+    '''
+    if len(data) > 1:
+        markup.row(data[0], data[1])
+    else:
+        markup.row(data[0])
+    markup.add()
+    return markup
+
+    # markup.row(btn_previous_page, btn_next_page)

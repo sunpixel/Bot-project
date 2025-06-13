@@ -1,0 +1,7 @@
+⏩   - forward
+⏪   - backward
+✅   - All good
+⛔   - Something broke
+❌   - Error
+❓    - Question mark
+❗    - Important mark

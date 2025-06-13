@@ -35,7 +35,6 @@ def receive_audio(msg, bot):
     out_file = os.path.join(download_dir, f"{file_id}.wav")
     print(f"Downloading {file_id} to {out_file}")
     convert_audio(download_path, out_file, 'wav')
-    # os.remove(download_path)
 
     # This code runs only after file is created (it is ensured)
 
