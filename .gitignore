@@ -1,5 +1,17 @@
+# Ignore specified directories and files
 TG/Data/Downloads/
 TG/Data/Uploads/
 TG/Data/Models/
 TG/config.ini
+
+# Ignore all __pycache__ directories
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+
+# Byte-compiled Python files
+*.py[cod]
+
+# Also ignore the specific pycache directory mentioned
 TG/src/__pycache__/
