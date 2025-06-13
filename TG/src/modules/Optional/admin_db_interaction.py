@@ -4,7 +4,7 @@ from TG.src.config_manager import config
 def make_connection():
     return sqlite3.connect(config.db_path)
 
-def check_existence(table, parameter, value):
+def check_existence(table, parameter, value: int):
     conn = make_connection()
     cursor = conn.cursor()
 
@@ -12,14 +12,23 @@ def check_existence(table, parameter, value):
     SELECT * FROM {table} WHERE {parameter} = ?
     ''', (value,))
 
-    return cursor.fetchone()
+    data = cursor.fetchone()
+    conn.close()
+
+    return data
 
 def check_command(user, command):
+    '''
+    :param user: (from DB)
+    :param command: (comes as string)
+    :return:
+    '''
     commands = str(user[2]).split(',')
     for i in commands:
         if i == command:
             return True
     return False
+
 
 def data_exists(table_name, column_value_pairs):
     """Check if a record exists based on column-value pairs."""
@@ -39,16 +48,14 @@ def add_new_admin(user_data):
     conn = make_connection()
     cursor = conn.cursor()
 
+    # Function that will perform conversion from array to a string
+    allowed_commands = lambda arr: ",".join(arr)
+
     # Allows for easy setup of all the commands available to admin
 
     user_id = int(user_data[0])
-    allowed_commands = lambda arr: ",".join(arr)
 
-    user = check_existence('admins', 'user_id', user_id)
 
-    if not user or not check_command([2], 'add_admin'):
-        conn.close()
-        return f'Permission denied for user {user_id}'
 
     try:
         cursor.execute('''

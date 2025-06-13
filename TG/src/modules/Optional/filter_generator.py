@@ -1,5 +1,5 @@
 from typing import List, Tuple, Union
-from enums import ProductColumn, FilterOperator
+from TG.src.modules.Optional.enums import ProductColumn, FilterOperator
 
 
 def build_where_clause(
