@@ -15,3 +15,4 @@ __pycache__/
 
 # Also ignore the specific pycache directory mentioned
 TG/src/__pycache__/
+*.ini
