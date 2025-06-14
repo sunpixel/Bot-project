@@ -49,11 +49,12 @@ def add_new_admin(user_data):
     cursor = conn.cursor()
 
     # Function that will perform conversion from array to a string
-    allowed_commands = lambda arr: ",".join(arr)
+    commands = lambda arr: ",".join(arr)
 
     # Allows for easy setup of all the commands available to admin
 
     user_id = int(user_data[0])
+    allowed_commands = commands(user_data[1])
 
 
 
@@ -74,13 +75,7 @@ def add_new_admin(user_data):
 def delete_admin(user_data):
     conn = make_connection()
     cursor = conn.cursor()
-    user_id = int(user_data[0])
-
-    user = check_existence('admins', 'user_id', user_id)
-
-    if not user or not check_command([2], 'delete_admin'):
-        conn.close()
-        return f'Permission denied for user {user_id}'
+    user_id = int(user_data)
 
     try:
         cursor.execute('''

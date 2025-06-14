@@ -30,6 +30,8 @@ class UserSession:
         self.total = 0
         self.limit = 10
 
+        self.admin = None
+
         self.message_ids = []
         self.text_data = []
 
@@ -98,9 +100,9 @@ def admin_execution(msg):
     session = get_user_session(msg.from_user.id)
     session.clean_messages(msg.chat.id)
     bot.send_chat_action(msg.chat.id, 'typing')
-    admin = AdminMessageHandler()
-    if admin.check_permission(msg.from_user.id):
-        markup = admin.admin_commands()
+    session.admin = AdminMessageHandler()
+    if session.admin.check_permission(msg.from_user.id):
+        markup = session.admin.admin_commands()
         message = bot.send_message(msg.chat.id, 'You are an administrator',
                             reply_markup=markup)
         session.add_message_id(message.message_id)
@@ -109,8 +111,8 @@ def admin_execution(msg):
         session.add_message_id(message.message_id)
         session.clean_messages(msg.chat.id)
         MainProcess().start_func(msg, bot)
-    # Clear the admin object to free memory
-    admin = None  
+        session.admin = None
+    bot.delete_message(msg.chat.id, msg.message_id)
 
 
 @bot.message_handler(func=lambda message: True)
@@ -183,5 +185,6 @@ def callback_msg(callback):
     handler = callback_handlers.get(callback.data)
     if handler:
         handler(callback, session, bot)
+
 
 bot.infinity_polling()

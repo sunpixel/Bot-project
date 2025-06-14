@@ -34,6 +34,11 @@ class AdminMessageHandler:
 
 	def admin_add(self, user_data):
 		if self.is_admin and 'add_admin' in self.allowed_commands:
+			'''
+				User_data= []
+				:param user_id
+				:param [command_list]
+			'''
 			add_new_admin(user_data)
 			return 'admin added'
 		else:
