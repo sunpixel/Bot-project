@@ -19,9 +19,8 @@ CREATE TABLE IF NOT EXISTS Users (
 
 CREATE TABLE IF NOT EXISTS Cart (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    items TEXT,
     user_id INTEGER,
-    FOREIGN KEY (user_id) REFERENCES Users (id)
+    FOREIGN KEY (user_id) REFERENCES Users (user_id)
 );
 
 CREATE TABLE IF NOT EXISTS Products (
@@ -38,11 +37,20 @@ CREATE TABLE IF NOT EXISTS Products (
     embedding BLOB
 );
 
+CREATE TABLE IF NOT EXISTS CartItems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cart_id INTEGER,
+    product_id INTEGER,
+    quantity INTEGER DEFAULT 1,
+    FOREIGN KEY (cart_id) REFERENCES Cart (id),
+    FOREIGN KEY (product_id) REFERENCES Products (id)
+);
+
 CREATE TABLE IF NOT EXISTS admins (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-user_id INTEGER NOT NULL,
-commands TEXT
-)
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    commands TEXT
+);
 ''')
 
 connection.commit()
