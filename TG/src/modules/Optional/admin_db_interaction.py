@@ -98,66 +98,59 @@ def delete_admin(user_data):
     on USER BUTTON_ACTION
 '''
 
-def add_new_entry(entry_table, entry_data, user_id):
+def add_new_entry(entry_table, entry_data):
     conn = make_connection()
     cursor = conn.cursor()
-
-    admin = check_existence('admins', 'user_id', user_id)
-
-    if not admin or not check_command(admin[2], 'new_entry'):
-        conn.close()
-        return f'Permission denied for user {user_id}'
-
     try:
         columns = ', '.join(entry_data.keys())
-        values = ', '.join(['?'] * len(entry_data))
-        cursor.execute(f'''
-        INSERT INTO {entry_table} ({columns})
-        VALUES ({values})
-        ''', tuple(entry_data.values()))
-        return f'Data successfully added to {entry_table}'
-
-    except Exception as e:
-        print(f'Error: {e}')
-        return 'Error occurred'
-
-    finally:
-        conn.close()
-
-def delete_entry(entry_data, entry_column):
-    conn = make_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(f'''
-        SELECT * FROM Products WHERE {entry_column} = ?
-        ''', (entry_data,))
-        product = cursor.fetchone()
-        if product:
-            cursor.execute(f'''
-            DELETE FROM Products WHERE {entry_column} = ?''')
-            print(f'Data successfully deleted from Products')
+        placeholders = ', '.join(['?'] * len(entry_data))
+        sql = f'INSERT INTO {entry_table} ({columns}) VALUES ({placeholders})'
+        cursor.execute(sql, tuple(entry_data.values()))
         conn.commit()
-        conn.close()
+        result = f'Data successfully added to {entry_table}'
     except Exception as e:
         print(f'Error: {e}')
         conn.rollback()
-        conn.close()
+        result = 'Error occurred'
+    conn.close()
+    return result
 
-
-def modify_entry(entry_data, entry_value, entry_column):
+def update_entry(entry_table, entry_data, where_clause, where_args):
+    """
+    entry_table: str, table name
+    entry_data: dict, columns and their new values
+    where_clause: str, e.g. "id = ?"
+    where_args: tuple/list, values for the WHERE clause
+    """
     conn = make_connection()
     cursor = conn.cursor()
-
     try:
-        cursor.execute(f'''
-        UPDATE Products 
-        SET {entry_column}
-        WHERE {entry_column} = ?
-        ''', (entry_value, entry_column))
+        set_clause = ', '.join([f"{col}=?" for col in entry_data.keys()])
+        sql = f'UPDATE {entry_table} SET {set_clause} WHERE {where_clause}'
+        cursor.execute(sql, tuple(entry_data.values()) + tuple(where_args))
         conn.commit()
-        conn.close()
+        result = f'Data successfully updated in {entry_table}'
     except Exception as e:
-        print(f'Error entry modification: {e}')
+        print(f'Error: {e}')
         conn.rollback()
-        conn.close()
+        result = 'Error occurred'
+    conn.close()
+    return result
+
+def delete_entry(entry_table, column_name, value):
+    """
+    entry_table: str, table name
+    column_name: str, column to match in WHERE clause
+    value: value to match for deletion
+    """
+    conn = make_connection()
+    cursor = conn.cursor()
+    try:
+        sql = f'DELETE FROM {entry_table} WHERE {column_name} = ?'
+        cursor.execute(sql, (value,))
+        conn.commit()
+        result = f'Data successfully deleted from {entry_table}'
+    except Exception as e:
+        print(f'Error: {e}')
+        conn.rollback()
+        result = 'Error occurred'
