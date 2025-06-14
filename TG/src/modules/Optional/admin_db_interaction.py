@@ -123,3 +123,41 @@ def add_new_entry(entry_table, entry_data, user_id):
 
     finally:
         conn.close()
+
+def delete_entry(entry_data, entry_column):
+    conn = make_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(f'''
+        SELECT * FROM Products WHERE {entry_column} = ?
+        ''', (entry_data,))
+        product = cursor.fetchone()
+        if product:
+            cursor.execute(f'''
+            DELETE FROM Products WHERE {entry_column} = ?''')
+            print(f'Data successfully deleted from Products')
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'Error: {e}')
+        conn.rollback()
+        conn.close()
+
+
+def modify_entry(entry_data, entry_value, entry_column):
+    conn = make_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(f'''
+        UPDATE Products 
+        SET {entry_column}
+        WHERE {entry_column} = ?
+        ''', (entry_value, entry_column))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f'Error entry modification: {e}')
+        conn.rollback()
+        conn.close()

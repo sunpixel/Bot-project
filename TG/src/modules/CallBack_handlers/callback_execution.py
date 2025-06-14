@@ -38,19 +38,32 @@ def handle_admin_delete_input(message, session, bot):
 
 def handle_entry_new(callback, session, bot):
     session.clean_messages(callback.message.chat.id)
-    admin = AdminMessageHandler()
     msg = bot.send_message(callback.message.chat.id,
                            'Try to add an entry')
     session.add_message_id(msg.message_id)
-    admin = None
+
 
 def handle_entry_delete(callback, session, bot):
     session.clean_messages(callback.message.chat.id)
-    admin = AdminMessageHandler()
+    bot.delete_message(callback.message.chat.id, callback.message.id)
     msg = bot.send_message(callback.message.chat.id,
-                           'Try to delete an entry')
+                           'To delete an entry provide'
+                           'name or id')
     session.add_message_id(msg.message_id)
-    admin = None
+
+
+def handle_entry_delete_input(message, session, bot):
+    try:
+        bot.delete_message(message.chat.id, message.id)
+        session.clean_messages(message.chat.id)
+        try:
+            entry_id = int(message.text)
+            session.admin.delete_entry(entry_id, 'id')
+        except:
+            entry_name = message.text.strip()
+            session.admin.delete_entry(entry_name, 'name')
+    except:
+        pass
 
 def handle_entry_modify(callback, session, bot):
     session.clean_messages(callback.message.chat.id)
