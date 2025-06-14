@@ -258,14 +258,3 @@ def amount_in_table(table_name):
     total = cursor.fetchone()[0]
     conn.close()
     return total
-
-def get_specific_data(param):
-    conn = db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute('SELECT * FROM Products WHERE name = ?', (param,))
-
-    product = cursor.fetchone()
-
-    conn.close()
-    return product

@@ -39,10 +39,14 @@ def data_exists(table_name, column_value_pairs):
         query = f"SELECT 1 FROM {table_name} WHERE {where_clause}"
         cursor.execute(query, tuple(column_value_pairs.values()))
         if cursor.fetchone():
+            conn.close()
             return True
-        else: return False
-    finally:
+        else:
+            conn.close()
+            return False
+    except Exception as e:
         conn.close()
+        print(f'Error: {e}')
 
 def add_new_admin(user_data):
     conn = make_connection()
@@ -89,14 +93,6 @@ def delete_admin(user_data):
         return f'An error has occurred.'
     finally:
         conn.close()
-
-
-'''
-    Some of the entries are performed automatically
-    on USER interaction
-    on USER ADD_TO_CART
-    on USER BUTTON_ACTION
-'''
 
 def add_new_entry(entry_table, entry_data):
     conn = make_connection()
@@ -149,8 +145,6 @@ def delete_entry(entry_table, column_name, value):
         sql = f'DELETE FROM {entry_table} WHERE {column_name} = ?'
         cursor.execute(sql, (value,))
         conn.commit()
-        result = f'Data successfully deleted from {entry_table}'
     except Exception as e:
         print(f'Error: {e}')
         conn.rollback()
-        result = 'Error occurred'

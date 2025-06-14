@@ -9,6 +9,7 @@ from TG.src.config_manager import config
 from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
 from TG.src.modules.CallBack_handlers.callback_execution import *
+from TG.src.modules.Processing.DB_scripts.db_interaction import *
 
 bot = telebot.TeleBot(config.get_api_key('telegram'))
 
@@ -29,6 +30,7 @@ class UserSession:
         self.offset = 0
         self.total = 0
         self.limit = 10
+        self.cart_id = None
 
         self.admin = None
 
@@ -170,7 +172,7 @@ def callback_msg(callback):
     elif callback.data == 'more_info':
         msg_id = callback.message.message_id
         db_search = session.text_data[session.message_ids.index(msg_id)]
-        data = get_specific_data(db_search)
+        data = get_specific_product(db_search)
         i = 0
         for key in products_template.keys():
             products_template[key] = data[i]
@@ -181,6 +183,11 @@ def callback_msg(callback):
             text += f"{key}: {value}\n"
         message = bot.send_message(callback.message.chat.id, text)
         session.add_message_id(message.message_id)
+
+    elif callback.data == 'add_to_cart':
+        msg_id = callback.message.message_id
+        db_search = session.text_data[session.message_ids.index(msg_id)]
+        data = get_specific_product(db_search)
 
     handler = callback_handlers.get(callback.data)
     if handler:
