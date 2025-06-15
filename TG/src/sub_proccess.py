@@ -147,7 +147,7 @@ class MainMenu:
 
         display_data = []
         for row in data:
-            data = {'name': row[1], 'price': row[2]}
+            data = {'name': row[2], 'price': row[9]}
             display_data.append(data)
 
         conn.close()

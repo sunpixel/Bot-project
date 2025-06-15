@@ -150,6 +150,9 @@ def on_click(msg):
 
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_msg(callback):
+
+    bot.answer_callback_query(callback.id, text="Processing...")
+
     user_id = callback.from_user.id
     session = get_user_session(user_id)
 
@@ -187,7 +190,7 @@ def callback_msg(callback):
     elif callback.data == 'add_to_cart':
         msg_id = callback.message.message_id
         db_search = session.text_data[session.message_ids.index(msg_id)]
-        data = get_specific_product(db_search)
+        on_add_to_cart(callback.message, session, db_search)
 
     handler = callback_handlers.get(callback.data)
     if handler:

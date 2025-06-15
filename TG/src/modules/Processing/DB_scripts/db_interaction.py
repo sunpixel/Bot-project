@@ -8,16 +8,17 @@ def make_connection():
 def on_add_to_cart(msg, session, product_name):
     conn = make_connection()
     cursor = conn.cursor()
-    product_id = -1 # Made like this to throw an error
     user_id = int(msg.from_user.id)
 
     if ensure_cart_created(user_id, session):
-        ''' Made to get ITEM_id if it exists '''
         try:
             product_id = int(get_specific_product(product_name)[0])
         except Exception as e:
             print(f'Error: {e}')
             print('No such product exists')
+            conn.close()
+            # Stops code execution
+            return
 
         try:
             cursor.execute('''
@@ -33,11 +34,11 @@ def on_add_to_cart(msg, session, product_name):
                 SET quantity = ? 
                 WHERE product_id = ? AND cart_id = ?
                 ''', (quantity, product_id, session.cart_id))
-                conn.commit()
             else:
                 cursor.execute('''
-                Insert into CartItems (cart_id, product_id) VALUES (?, ?)
-                ''')
+                INSERT INTO CartItems (cart_id, product_id) VALUES (?, ?)
+                ''', (session.cart_id, product_id))
+            conn.commit()
             conn.close()
         except Exception as e:
             print(f'Error: {e}')
@@ -48,31 +49,28 @@ def ensure_cart_created(user_id, session):
     conn = make_connection()
     cursor = conn.cursor()
 
-    cart_exists = False
-
     try:
         cursor.execute('''
-        SELECT (user_id) FROM Cart
+        SELECT id FROM Cart
         WHERE user_id = ?''', (user_id,))
         cart_exists = cursor.fetchone()
-        session.cart_id = cart_exists[0]
-        return True if cart_exists else False
+        if cart_exists:
+            session.cart_id = cart_exists[0]
+        else:
+            cursor.execute('''
+            INSERT INTO Cart (user_id)
+            VALUES (?)
+            ''', (user_id,))
+            session.cart_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return True
 
     except Exception as e:
         print(f'Error: {e}')
-
-
-    if not cart_exists:
-        try:
-            cursor.execute('''
-            INSERT INTO Cart (user_id)
-            Values (?)
-            ''', (user_id,))
-            session.cart_id = cursor.fetchone()[0]
-            return True
-        except Exception as e:
-            print(f'Error: {e}')
-    return False
+        conn.rollback()
+        conn.close()
+        return False
 
 
 def get_specific_product(param):
