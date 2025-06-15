@@ -1,6 +1,9 @@
 import os
-import telebot
-from telebot import types
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
+    ContextTypes, filters
+)
 
 from TG.src.modules.Optional.admin_msg_handler import AdminMessageHandler
 from TG.src.modules.Templates.db_data_templates import products_template
@@ -10,9 +13,6 @@ from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
 from TG.src.modules.CallBack_handlers.callback_execution import *
 from TG.src.modules.Processing.DB_scripts.db_interaction import get_specific_product
-
-bot = telebot.TeleBot(config.get_api_key('telegram'))
-
 
 callback_handlers = {
     'delete': handle_delete,
@@ -30,15 +30,12 @@ callback_handlers = {
 
 class UserSession:
     def __init__(self):
-        # Pagination control
         self.offset = 0
         self.total = 0
         self.limit = 10
         self.cart_id = None
         self.user_id = None
-
         self.admin = None
-
         self.message_ids = []
         self.text_data = []
 
@@ -50,26 +47,21 @@ class UserSession:
             self.offset = max(0, self.total - (self.total % self.limit or self.limit))
 
     def add_message_id(self, msg_id):
-        """Original message tracking"""
         self.message_ids.append(msg_id)
 
     def add_text_data(self, text_item):
-        """Separate text data storage"""
         self.text_data.append(text_item)
 
     def get_text_data(self):
-        """Retrieve stored text data"""
         return self.text_data
 
     def clear_text_data(self):
-        """Clear text storage"""
         self.text_data = []
 
-    def clean_messages(self, chat_id):
-        """Delete all tracked messages"""
+    async def clean_messages(self, chat_id, context):
         for msg_id in self.message_ids:
             try:
-                bot.delete_message(chat_id, msg_id)
+                await context.bot.delete_message(chat_id, msg_id)
             except Exception as e:
                 print(f"Error deleting message {msg_id}: {e}")
         self.message_ids = []
@@ -78,144 +70,121 @@ class UserSession:
         if not self.user_id:
             self.user_id = id
 
-
 user_sessions = defaultdict(UserSession)
-
 
 def get_user_session(user_id):
     return user_sessions[user_id]
 
-
-@bot.message_handler(commands=['start'])
-def start(msg):
-    session = get_user_session(msg.from_user.id)
-    session.set_user_id(msg.from_user.id)
-    session.add_message_id(msg.message_id)
-    session.clean_messages(msg.chat.id)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session = get_user_session(update.effective_user.id)
+    session.set_user_id(update.effective_user.id)
+    session.add_message_id(update.message.message_id)
+    await session.clean_messages(update.effective_chat.id, context)
     session.clear_text_data()
-    #bot.delete_message(msg.chat.id, msg.message_id)
-    MainProcess().start_func(msg, bot)
+    await MainProcess().start_func(update, context.bot)
 
-@bot.message_handler(content_types=['audio', 'voice'])
-def process_audio(msg):
-    session = get_user_session(msg.from_user.id)
-    session.set_user_id(msg.from_user.id)
-    MainProcess().audio(msg, bot)
+async def process_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session = get_user_session(update.effective_user.id)
+    session.set_user_id(update.effective_user.id)
+    await MainProcess().audio(update, context.bot)
 
-
-@bot.message_handler(commands=['test'])
-def test(msg):
-    session = get_user_session(msg.from_user.id)
-    session.set_user_id(msg.from_user.id)
-    bot.delete_message(msg.chat.id, msg.message_id)
+async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session = get_user_session(update.effective_user.id)
+    session.set_user_id(update.effective_user.id)
+    await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
     update_all_product_embeddings()
 
-@bot.message_handler(commands=['admin'])
-def admin_execution(msg):
-    session = get_user_session(msg.from_user.id)
-    session.set_user_id(msg.from_user.id)
-    session.clean_messages(msg.chat.id)
-    bot.send_chat_action(msg.chat.id, 'typing')
+async def admin_execution(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session = get_user_session(update.effective_user.id)
+    session.set_user_id(update.effective_user.id)
+    await session.clean_messages(update.effective_chat.id, context)
+    await context.bot.send_chat_action(update.effective_chat.id, 'typing')
     session.admin = AdminMessageHandler()
-    if session.admin.check_permission(msg.from_user.id):
+    if session.admin.check_permission(update.effective_user.id):
         markup = session.admin.admin_commands()
-        message = bot.send_message(msg.chat.id, 'You are an administrator',
-                            reply_markup=markup)
+        message = await context.bot.send_message(
+            update.effective_chat.id, 'You are an administrator',
+            reply_markup=markup
+        )
         session.add_message_id(message.message_id)
     else:
-        message = bot.send_message(msg.chat.id, 'Permission Denied')
+        message = await context.bot.send_message(update.effective_chat.id, 'Permission Denied')
         session.add_message_id(message.message_id)
-        session.clean_messages(msg.chat.id)
-        MainProcess().start_func(msg, bot)
+        await session.clean_messages(update.effective_chat.id, context)
+        await MainProcess().start_func(update, context.bot)
         session.admin = None
-    bot.delete_message(msg.chat.id, msg.message_id)
+    await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
 
+async def on_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    session = get_user_session(update.effective_user.id)
+    session.set_user_id(update.effective_user.id)
+    text = update.message.text
 
-@bot.message_handler(func=lambda message: True)
-def on_click(msg):
-    session = get_user_session(msg.from_user.id)
-    session.set_user_id(msg.from_user.id)
-
-    if msg.text == 'Search':
-        bot.delete_message(msg.chat.id, msg.message_id)
-        search_msg = bot.send_message(msg.chat.id, 'Enter your query:')
+    if text == 'Search':
+        await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
+        search_msg = await context.bot.send_message(update.effective_chat.id, 'Enter your query:')
         session.add_message_id(search_msg.message_id)
 
-    elif msg.text == 'Main':
+    elif text == 'Main':
         session.total = amount_in_table('Products')
-        bot.delete_message(msg.chat.id, msg.message_id)
+        await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
         session.clear_text_data()
-        session.clean_messages(msg.chat.id)
+        await session.clean_messages(update.effective_chat.id, context)
+        await MainMenu().main_menu_handler(
+            context.bot, update, session, [session.limit, session.offset, session.total]
+        )
 
-        # Get both lists from main_menu_handler
-        MainMenu().main_menu_handler(bot,
-                                    msg,
-                                    session,
-                                    [
-                                        session.limit,
-                                        session.offset,
-                                        session.total
-                                    ])
-
-    elif msg.text == 'Cart':
-        bot.delete_message(msg.chat.id, msg.message_id)
-        session.clean_messages(msg.chat.id)
+    elif text == 'Cart':
+        await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
+        await session.clean_messages(update.effective_chat.id, context)
         text, markup = get_cart_data(session)
-        cart_msg = bot.send_message(msg.chat.id, text, parse_mode='HTML', reply_markup=markup)
-
+        cart_msg = await context.bot.send_message(
+            update.effective_chat.id, text, parse_mode='HTML', reply_markup=markup
+        )
         session.add_message_id(cart_msg.message_id)
 
+async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer(text="Processing...")
 
-# Better left at the bottom for easy access
-
-@bot.callback_query_handler(func=lambda callback: True)
-def callback_msg(callback):
-
-    bot.answer_callback_query(callback.id, text="Processing...")
-
-    user_id = callback.from_user.id
+    user_id = query.from_user.id
     session = get_user_session(user_id)
     session.set_user_id(user_id)
-
     session.total = amount_in_table('Products')
 
-    if callback.data in ['previous_page', 'next_page']:
-        session.clean_messages(callback.message.chat.id)
+    if query.data in ['previous_page', 'next_page']:
+        await session.clean_messages(query.message.chat.id, context)
         session.clear_text_data()
-
-        offset_change = -10 if callback.data == 'previous_page' else 10
+        offset_change = -10 if query.data == 'previous_page' else 10
         session.update_pagination(offset_change)
+        await MainMenu().main_menu_handler(
+            context.bot, query.message, session, [session.limit, session.offset, session.total]
+        )
 
-        MainMenu().main_menu_handler(bot,
-                                    callback.message,
-                                    session,
-                                    [
-                                        session.limit,
-                                        session.offset,
-                                        session.total
-                                    ])
-
-    elif callback.data == 'do_return':
-        session.clean_messages(callback.message.chat.id)
+    elif query.data == 'do_return':
+        await session.clean_messages(query.message.chat.id, context)
         session.clear_text_data()
+        await MainMenu().main_menu_handler(
+            context.bot, query.message, session, [session.limit, session.offset, session.total]
+        )
 
-        MainMenu().main_menu_handler(bot,
-                                    callback.message,
-                                    session,
-                                    [
-                                        session.limit,
-                                        session.offset,
-                                        session.total
-                                    ])
-
-    # Do not use this for retrieving USER_ID
-    # Will provide with BOT_ID
-    handler = callback_handlers.get(callback.data)
+    handler = callback_handlers.get(query.data)
     if handler:
-        handler(callback, session, bot)
+        await handler(query, session, context.bot)
 
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    pass  # Optionally handle unknown commands/messages
 
-# Executes at bot start/restart
-MainProcess().clean_up()
+def main():
+    MainProcess().clean_up()
+    application = ApplicationBuilder().token(config.get_api_key('telegram')).build()
 
-bot.infinity_polling()
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('test', test))
+    application.add_handler(CommandHandler('admin', admin_execution))
+    application.add_handler(MessageHandler(filters.AUDIO | filters.VOICE, process_audio))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_click))
+    application.add_handler(CallbackQueryHandler(callback_msg))
+    application.add_handler(MessageHandler(filters.ALL, unknown))
+
+    application.run_polling()

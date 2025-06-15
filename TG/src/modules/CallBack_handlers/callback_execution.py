@@ -1,92 +1,101 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.constants import ParseMode
 from TG.src.modules.Optional.admin_msg_handler import *
 from TG.src.modules.Processing.DB_scripts.db_interaction import *
 from TG.src.modules.Templates.db_data_templates import products_template
 
+# All handler functions are now async and use context.bot
 
-def handle_admin_add(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
-    msg = bot.send_message(callback.message.chat.id, 'Please provide user_id or username and command list,'
-                                                     'everything should be separated by whitespace')
+async def handle_admin_add(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
+    msg = await bot.send_message(
+        callback.message.chat.id,
+        'Please provide user_id or username and command list, everything should be separated by whitespace'
+    )
     session.add_message_id(msg.message_id)
-    bot.register_next_step_handler(msg, handle_admin_add_input, session, bot)
+    # You need to implement a mechanism for the next step (e.g., ConversationHandler in python-telegram-bot)
 
-def handle_admin_add_input(message, session, bot):
+async def handle_admin_add_input(message, session, bot):
     parts = [p.strip() for p in message.text.split()]
     user_id = int(parts[0])
     commands = parts[1:]
-    bot.delete_message(message.chat.id, message.id)
-    session.clean_messages(message.chat.id)
+    await bot.delete_message(message.chat.id, message.message_id)
+    await session.clean_messages(message.chat.id, bot)
     print(session.admin.admin_add([user_id, commands]))
 
-
-def handle_admin_delete(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
-    msg = bot.send_message(callback.message.chat.id,
-                           'Enter admin user_id to delete')
+async def handle_admin_delete(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
+    msg = await bot.send_message(
+        callback.message.chat.id,
+        'Enter admin user_id to delete'
+    )
     session.add_message_id(msg.message_id)
-    bot.register_next_step_handler(msg, handle_admin_delete_input, session, bot)
+    # You need to implement a mechanism for the next step (e.g., ConversationHandler)
 
-def handle_admin_delete_input(message, session, bot):
+async def handle_admin_delete_input(message, session, bot):
     try:
-        bot.delete_message(message.chat.id, message.id)
-        session.clean_messages(message.chat.id)
+        await bot.delete_message(message.chat.id, message.message_id)
+        await session.clean_messages(message.chat.id, bot)
         user_id = int(message.text)
         session.admin.admin_delete(user_id)
-    except:
+    except Exception:
         pass
 
-
-def handle_entry_new(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
-    msg = bot.send_message(callback.message.chat.id,
-                           'Try to add an entry')
+async def handle_entry_new(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
+    msg = await bot.send_message(
+        callback.message.chat.id,
+        'Try to add an entry'
+    )
     session.add_message_id(msg.message_id)
 
-
-def handle_entry_delete(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
-    bot.delete_message(callback.message.chat.id, callback.message.id)
-    msg = bot.send_message(callback.message.chat.id,
-                           'To delete an entry provide'
-                           'name or id')
+async def handle_entry_delete(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
+    await bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    msg = await bot.send_message(
+        callback.message.chat.id,
+        'To delete an entry provide name or id'
+    )
     session.add_message_id(msg.message_id)
 
-
-def handle_entry_delete_input(message, session, bot):
+async def handle_entry_delete_input(message, session, bot):
     try:
-        bot.delete_message(message.chat.id, message.id)
-        session.clean_messages(message.chat.id)
+        await bot.delete_message(message.chat.id, message.message_id)
+        await session.clean_messages(message.chat.id, bot)
         try:
             entry_id = int(message.text)
             session.admin.delete_entry(entry_id, 'id')
-        except:
+        except Exception:
             entry_name = message.text.strip()
             session.admin.delete_entry(entry_name, 'name')
-    except:
+    except Exception:
         pass
 
-def handle_entry_modify(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
-    admin = AdminMessageHandler()
-    msg = bot.send_message(callback.message.chat.id,
-                           'Try to modify an entry')
+async def handle_entry_modify(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
+    msg = await bot.send_message(
+        callback.message.chat.id,
+        'Try to modify an entry'
+    )
     session.add_message_id(msg.message_id)
-    admin = None
 
-def handle_edit(callback, session, bot):
-    session.clean_messages(callback.message.chat.id)
+async def handle_edit(callback, session, bot):
+    await session.clean_messages(callback.message.chat.id, bot)
     if session.text_data:
         new_text = f"Edited: {session.text_data[0]}"  # Using first item as example
-        bot.edit_message_text(new_text, callback.message.chat.id, callback.message.message_id)
+        await bot.edit_message_text(
+            new_text,
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id
+        )
 
+async def handle_delete(callback, session, bot):
+    await bot.delete_message(callback.message.chat.id, callback.message.message_id)
 
-def handle_delete(callback, session, bot):
-    bot.delete_message(callback.message.chat.id, callback.message.message_id)
-
-def handle_add_to_cart(msg, session, bot):
+async def handle_add_to_cart(msg, session, bot):
     string = str(msg.message.text)
     db_search = None
-    if string.find('\n') != -1:
+    if '\n' in string:
         for line in string.split('\n'):
             if line.startswith('name:'):
                 db_search = line.split(':', 1)[1].strip()
@@ -95,9 +104,7 @@ def handle_add_to_cart(msg, session, bot):
         db_search = string
     on_add_to_cart(session, db_search)
 
-
-def handle_more_info(msg, session, bot):
-    markup = types.InlineKeyboardMarkup(row_width=1)
+async def handle_more_info(msg, session, bot):
     msg_id = msg.message.message_id
     product = products_template.copy()
     db_search = session.text_data[session.message_ids.index(msg_id)]
@@ -106,36 +113,28 @@ def handle_more_info(msg, session, bot):
     for key in product.keys():
         product[key] = data[i]
         i += 1
-    session.clean_messages(msg.message.chat.id)
+    await session.clean_messages(msg.message.chat.id, bot)
     text = ''
     for key, value in product.items():
         text += f"{key}: {value}\n"
 
-    btn_add_to_cart = types.InlineKeyboardButton(
-        text='🛒 Add to Cart 🛒',
-        callback_data='add_to_cart'
+    markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton('🔥 Buy Now 🔥', callback_data='buy_now')],
+        [InlineKeyboardButton('🛒 Add to Cart 🛒', callback_data='add_to_cart')],
+        [InlineKeyboardButton('⏪ Back ⏪', callback_data='do_return')]
+    ])
+    message = await bot.send_message(
+        msg.message.chat.id,
+        text,
+        reply_markup=markup
     )
-
-    btn_buy_now = types.InlineKeyboardButton(
-        text='🔥 Buy Now 🔥',
-        callback_data='buy_now',
-        
-    )
-
-    btn_do_return = types.InlineKeyboardButton(
-        text='⏪ Back ⏪',
-        callback_data='do_return'
-    )
-
-    markup.add(btn_buy_now, btn_add_to_cart, btn_do_return)
-    message = bot.send_message(msg.message.chat.id, text,
-                               reply_markup=markup)
     session.add_message_id(message.message_id)
 
-def handle_buy_cart(callback, session, bot):
+async def handle_buy_cart(callback, session, bot):
+    # Implement your buy cart logic here
     pass
 
-def handle_do_clear_cart(callback, session, bot):
+async def handle_do_clear_cart(callback, session, bot):
     conn = make_connection()
     cursor = conn.cursor()
     cursor.execute('''
@@ -148,8 +147,9 @@ def handle_do_clear_cart(callback, session, bot):
     cart_message = "<b>🛍️ Your Shopping Cart 🛍️</b>\n<pre>\n"
     cart_message += f"\n{'GRAND TOTAL:':<25}         ₽   0</pre>"
 
-    bot.edit_message_text(text=cart_message,
-                          chat_id=callback.message.chat.id,
-                          message_id=callback.message.message_id,
-                          parse_mode='HTML')
-
+    await bot.edit_message_text(
+        text=cart_message,
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
+        parse_mode=ParseMode.HTML
+    )
