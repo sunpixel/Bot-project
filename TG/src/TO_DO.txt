@@ -61,9 +61,11 @@ On admin command: (In Progress)
                     depending on the table data is entered to
                     - Will send data for further processing and
                     enter all data into DB if it does not exist
+
             - modify_entry (Working)
                 - Provided entry ID, will modify the said entry
                 any data can be modified except ADMIN
+
             - delete_entry (Done but can be improved)
                 - Provided entry id, will delete said entry
                 from DB.

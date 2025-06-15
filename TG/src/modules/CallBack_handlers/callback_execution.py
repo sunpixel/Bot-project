@@ -118,7 +118,8 @@ def handle_more_info(msg, session, bot):
 
     btn_buy_now = types.InlineKeyboardButton(
         text='🔥 Buy Now 🔥',
-        callback_data='buy_now'
+        callback_data='buy_now',
+        
     )
 
     btn_do_return = types.InlineKeyboardButton(
