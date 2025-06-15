@@ -1,4 +1,6 @@
 from TG.src.modules.Optional.admin_msg_handler import *
+from TG.src.modules.Processing.DB_scripts.db_interaction import *
+from TG.src.modules.Templates.db_data_templates import products_template
 
 
 def handle_admin_add(callback, session, bot):
@@ -81,38 +83,51 @@ def handle_edit(callback, session, bot):
 def handle_delete(callback, session, bot):
     bot.delete_message(callback.message.chat.id, callback.message.message_id)
 
-
-'''
-    elif callback.data == 'admin_add':
-        session.clean_messages(callback.message.chat.id)
-        msg = bot.send_message(callback.message.chat.id,
-                               'Try to make an admin')
-        session.add_message_id(msg.message_id)
-
-    elif callback.data == 'admin_delete':
-        session.clean_messages(callback.message.chat.id)
-        msg = bot.send_message(callback.message.chat.id,
-                               'Try to delete an admin')
-        session.add_message_id(msg.message_id)
-
-    elif callback.data == 'entry_new':
-        session.clean_messages(callback.message.chat.id)
-        msg = bot.send_message(callback.message.chat.id,
-                               'Try to add an entry')
-        session.add_message_id(msg.message_id)
-
-    elif callback.data == 'entry_modify':
-        session.clean_messages(callback.message.chat.id)
-        msg = bot.send_message(callback.message.chat.id,
-                               'Try to modify an entry')
-        session.add_message_id(msg.message_id)
-
-    elif callback.data == 'entry_delete':
-        session.clean_messages(callback.message.chat.id)
-        msg = bot.send_message(callback.message.chat.id,
-                               'Try to delete an entry')
-        session.add_message_id(msg.message_id)
+def handle_add_to_cart(msg, session, bot):
+    string = str(msg.message.text)
+    db_search = None
+    if string.find('\n') != -1:
+        for line in string.split('\n'):
+            if line.startswith('name:'):
+                db_search = line.split(':', 1)[1].strip()
+                break
+    else:
+        db_search = string
+    on_add_to_cart(session, db_search)
 
 
+def handle_more_info(msg, session, bot):
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    msg_id = msg.message.message_id
+    product = products_template.copy()
+    db_search = session.text_data[session.message_ids.index(msg_id)]
+    data = get_specific_product(db_search)
+    i = 1   # Made so that ID is not displayed
+    for key in product.keys():
+        product[key] = data[i]
+        i += 1
+    session.clean_messages(msg.message.chat.id)
+    text = ''
+    for key, value in product.items():
+        text += f"{key}: {value}\n"
 
-'''
+    btn_add_to_cart = types.InlineKeyboardButton(
+        text='🛒 Add to Cart 🛒',
+        callback_data='add_to_cart'
+    )
+
+    btn_buy_now = types.InlineKeyboardButton(
+        text='🔥 Buy Now 🔥',
+        callback_data='buy_now'
+    )
+
+    btn_do_return = types.InlineKeyboardButton(
+        text='⏪ Back ⏪',
+        callback_data='do_return'
+    )
+
+    markup.add(btn_buy_now, btn_add_to_cart, btn_do_return)
+    message = bot.send_message(msg.message.chat.id, text,
+                               reply_markup=markup)
+    session.add_message_id(message.message_id)
+

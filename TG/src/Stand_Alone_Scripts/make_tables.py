@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS Cart (
 
 CREATE TABLE IF NOT EXISTS Products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
     image BLOB,
+    name TEXT NOT NULL,
     details TEXT,
     speed REAL,
     capacity INTEGER,

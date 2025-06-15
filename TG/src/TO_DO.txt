@@ -1,14 +1,14 @@
 On User action:
-    - Main menu:
-        -Send message that contains:
-            - IMG
+    - Main menu: (Working)
+        -Send message that contains: (Working)
+            - IMG (Not Yet Implemented)
             - Name
-            - Clickable BUTTONS
-                - Buy now
+            - Clickable BUTTONS (Works)
+                - Buy now (Doesnt work Yet)
                     - Transfer to payment page (not implemented)
-                - Add To Cart
+                - Add To Cart (Done)
                     - Will add 1 product of this product to the cart
-                - More info (Will send additional data and delete extra msgs)
+                - More info (Done)
                     - This button will send all available data
                     structured for the product like this:
                         - Name
@@ -16,54 +16,54 @@ On User action:
                         - Type
                         - etc...
                     - Send 3 clickable buttons
-                        - Buy now
+                        - Buy now (Doesnt work Yet)
                             - Transfer to payment page (not implemented)
-                        - Add to cart
+                        - Add to cart (Done)
                             - Will add 1 product of this type to the cart
-                        - Back
+                        - Back (Done)
                             - Will resend 10 last msgs and delete this one
-                - Previous Page
+                - Previous Page (Done)
                     - Will load 10 previous products if available
-                - Next Page
+                - Next Page (Done)
                     - Will load 10 next products if available
-    - Cart:
+    - Cart: (Working)
         - Delete Extra messages
         - Send a message:
             - name and amount of item in it
                 - MAYBE allow for it to be clickable
-                and redirect to the products page
-            - Clickable buttons:
+                and redirect to the products page (Not Implemented)
+            - Clickable buttons:    (Working)
                 - Buy
                     - Transfer to payment screen
                 - Back
                     - Returns to MAIN menu
-    - Search:
+    - Search: (Not implemented YET)
         - Send a message for DB search.
         - Process user input and perform DB search
         - Send RESULT(S)
 
 
-On admin command:
+On admin command: (In Progress)
     - Bot will check if user is admin and deny access if not
     - Send message with Clickable buttons:
         - Each button will represent all admin commands
         (regardless of command permission that admin has)
         - Functionality of buttons may vary depending on task
-            - add_admin
+            - add_admin (Done)
                 - Can send a list of all user_id and usernames in DB
                 for easier admin add or manual user_id entry
-            - delete_admin
+            - delete_admin (Done)
                 - Select from list of user_id in admin list
 
-            - new_entry
+            - new_entry (Working)
                 - Will ask what entry to add
                     - Send different amount of data to enter
                     depending on the table data is entered to
                     - Will send data for further processing and
                     enter all data into DB if it does not exist
-            - modify_entry
+            - modify_entry (Working)
                 - Provided entry ID, will modify the said entry
                 any data can be modified except ADMIN
-            - delete_entry
+            - delete_entry (Done but can be improved)
                 - Provided entry id, will delete said entry
                 from DB.

@@ -104,7 +104,7 @@ def get_create_user(user_data):
         ) VALUES (?, ?)
         ''', (user_id, username))
         conn.commit()
-        conn.close()
+    conn.close()
 
 
 def download_img():
@@ -205,7 +205,7 @@ class MainMenu:
     def extra_menu_message(total, limit, offset):
         markup = types.InlineKeyboardMarkup()
         data = []
-        print(total,limit,offset)
+        print(total, limit, offset)
         if offset // 10 != 0:
             btn_previous_page = types.InlineKeyboardButton('⏪ Previous page', callback_data='previous_page')
             data.append(btn_previous_page)
@@ -230,24 +230,20 @@ class MainMenu:
         return markup
 
         # markup.row(btn_previous_page, btn_next_page)
-    def main_menu_handler(self, bot, msg, data_set_atr):
+    def main_menu_handler(self, bot, msg, session, data_set_atr):
         limit = data_set_atr[0]
         offset = data_set_atr[1]
         total = data_set_atr[2]
-        msg_ids = []
-        text_data = []
 
         menu_data = MainMenu().main_menu_data(limit, offset)
         for data in menu_data:
             markup = self.main_menu_msg(data, [limit, offset, total])
             message = bot.send_message(msg.chat.id, str(data['name']), reply_markup=markup, parse_mode="HTML")
-            text_data.append(message.text)
-            msg_ids.append(int(message.message_id))
+            session.add_text_data(message.text)
+            session.add_message_id(message.message_id)
         markup = self.extra_menu_message(total, limit, offset)
         message = bot.send_message(msg.chat.id, '-' * 20, reply_markup=markup, parse_mode="HTML")
-        text_data.append(message.text)
-        msg_ids.append(int(message.message_id))
-        return msg_ids, text_data
+        session.add_message_id(message.message_id)
 
 def amount_in_table(table_name):
     conn = db_connection()
@@ -257,4 +253,11 @@ def amount_in_table(table_name):
                    f'    ')
     total = cursor.fetchone()[0]
     conn.close()
-    return total
+    if total:
+        return total
+    return 0
+
+
+def get_cart_data(user_id, session):
+    if session.cart_id:
+        pass

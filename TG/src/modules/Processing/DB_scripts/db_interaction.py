@@ -5,11 +5,11 @@ def make_connection():
     return sqlite3.connect(config.db_path)
 
 
-def on_add_to_cart(msg, session, product_name):
+def on_add_to_cart(session, product_name):
     conn = make_connection()
     cursor = conn.cursor()
-    user_id = int(msg.from_user.id)
 
+    user_id = session.user_id
     if ensure_cart_created(user_id, session):
         try:
             product_id = int(get_specific_product(product_name)[0])
@@ -41,6 +41,7 @@ def on_add_to_cart(msg, session, product_name):
             conn.commit()
             conn.close()
         except Exception as e:
+            print('here')
             print(f'Error: {e}')
             conn.rollback()
             conn.close()
@@ -48,6 +49,8 @@ def on_add_to_cart(msg, session, product_name):
 def ensure_cart_created(user_id, session):
     conn = make_connection()
     cursor = conn.cursor()
+
+    print(f'cart creation user id: {user_id}')
 
     try:
         cursor.execute('''
@@ -67,6 +70,7 @@ def ensure_cart_created(user_id, session):
         return True
 
     except Exception as e:
+        print('here')
         print(f'Error: {e}')
         conn.rollback()
         conn.close()
@@ -83,3 +87,16 @@ def get_specific_product(param):
 
     conn.close()
     return product
+
+def cart_data_retrival(user_id):
+    conn = make_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+    select * from Cart where
+    ''')
+
+    cart_id = 0
+
+
+
+    return cart_id

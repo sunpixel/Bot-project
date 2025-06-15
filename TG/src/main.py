@@ -9,7 +9,7 @@ from TG.src.config_manager import config
 from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
 from TG.src.modules.CallBack_handlers.callback_execution import *
-from TG.src.modules.Processing.DB_scripts.db_interaction import *
+from TG.src.modules.Processing.DB_scripts.db_interaction import get_specific_product
 
 bot = telebot.TeleBot(config.get_api_key('telegram'))
 
@@ -22,6 +22,8 @@ callback_handlers = {
     'entry_new': handle_entry_new,
     'entry_modify': handle_entry_modify,
     'entry_delete': handle_entry_delete,
+    'add_to_cart': handle_add_to_cart,
+    'more_info': handle_more_info
 }
 
 class UserSession:
@@ -31,6 +33,7 @@ class UserSession:
         self.total = 0
         self.limit = 10
         self.cart_id = None
+        self.user_id = None
 
         self.admin = None
 
@@ -69,6 +72,10 @@ class UserSession:
                 print(f"Error deleting message {msg_id}: {e}")
         self.message_ids = []
 
+    def set_user_id(self, id):
+        if not self.user_id:
+            self.user_id = id
+
 
 user_sessions = defaultdict(UserSession)
 
@@ -80,6 +87,7 @@ def get_user_session(user_id):
 @bot.message_handler(commands=['start'])
 def start(msg):
     session = get_user_session(msg.from_user.id)
+    session.set_user_id(msg.from_user.id)
     session.add_message_id(msg.message_id)
     session.clean_messages(msg.chat.id)
     session.clear_text_data()
@@ -88,18 +96,22 @@ def start(msg):
 
 @bot.message_handler(content_types=['audio', 'voice'])
 def process_audio(msg):
+    session = get_user_session(msg.from_user.id)
+    session.set_user_id(msg.from_user.id)
     MainProcess().audio(msg, bot)
 
 
 @bot.message_handler(commands=['test'])
 def test(msg):
     session = get_user_session(msg.from_user.id)
+    session.set_user_id(msg.from_user.id)
     bot.delete_message(msg.chat.id, msg.message_id)
     update_all_product_embeddings()
 
 @bot.message_handler(commands=['admin'])
 def admin_execution(msg):
     session = get_user_session(msg.from_user.id)
+    session.set_user_id(msg.from_user.id)
     session.clean_messages(msg.chat.id)
     bot.send_chat_action(msg.chat.id, 'typing')
     session.admin = AdminMessageHandler()
@@ -120,6 +132,7 @@ def admin_execution(msg):
 @bot.message_handler(func=lambda message: True)
 def on_click(msg):
     session = get_user_session(msg.from_user.id)
+    session.set_user_id(msg.from_user.id)
 
     if msg.text == 'Search':
         bot.delete_message(msg.chat.id, msg.message_id)
@@ -129,20 +142,23 @@ def on_click(msg):
     elif msg.text == 'Main':
         session.total = amount_in_table('Products')
         bot.delete_message(msg.chat.id, msg.message_id)
+        session.clear_text_data()
         session.clean_messages(msg.chat.id)
 
         # Get both lists from main_menu_handler
-        msg_ids, text_items = MainMenu().main_menu_handler(bot, msg, [session.limit, session.offset, session.total])
-
-        # Store them separately
-        for msg_id in msg_ids:
-            session.add_message_id(msg_id)
-        for text_item in text_items:
-            session.add_text_data(text_item)
+        MainMenu().main_menu_handler(bot,
+                                    msg,
+                                    session,
+                                    [
+                                        session.limit,
+                                        session.offset,
+                                        session.total
+                                    ])
 
     elif msg.text == 'Cart':
         bot.delete_message(msg.chat.id, msg.message_id)
         cart_msg = bot.send_message(msg.chat.id, 'You are in cart')
+        get_cart_data(msg.from_user.id, session)
         session.add_message_id(cart_msg.message_id)
 
 
@@ -155,6 +171,7 @@ def callback_msg(callback):
 
     user_id = callback.from_user.id
     session = get_user_session(user_id)
+    session.set_user_id(user_id)
 
     session.total = amount_in_table('Products')
 
@@ -165,36 +182,38 @@ def callback_msg(callback):
         offset_change = -10 if callback.data == 'previous_page' else 10
         session.update_pagination(offset_change)
 
-        msg_ids, text_items = MainMenu().main_menu_handler(bot, callback.message, [session.limit, session.offset, session.total])
+        MainMenu().main_menu_handler(bot,
+                                    callback.message,
+                                    session,
+                                    [
+                                        session.limit,
+                                        session.offset,
+                                        session.total
+                                    ])
 
-        for msg_id in msg_ids:
-            session.add_message_id(msg_id)
-        for text_item in text_items:
-            session.add_text_data(text_item)
-
-    elif callback.data == 'more_info':
-        msg_id = callback.message.message_id
-        db_search = session.text_data[session.message_ids.index(msg_id)]
-        data = get_specific_product(db_search)
-        i = 0
-        for key in products_template.keys():
-            products_template[key] = data[i]
-            i += 1
+    elif callback.data == 'do_return':
         session.clean_messages(callback.message.chat.id)
-        text = ''
-        for key, value in products_template.items():
-            text += f"{key}: {value}\n"
-        message = bot.send_message(callback.message.chat.id, text)
-        session.add_message_id(message.message_id)
+        session.clear_text_data()
 
-    elif callback.data == 'add_to_cart':
-        msg_id = callback.message.message_id
-        db_search = session.text_data[session.message_ids.index(msg_id)]
-        on_add_to_cart(callback.message, session, db_search)
+        MainMenu().main_menu_handler(bot,
+                                    callback.message,
+                                    session,
+                                    [
+                                        session.limit,
+                                        session.offset,
+                                        session.total
+                                    ])
 
+    # Do not use this for retrieving USER_ID
+    # Will provide with BOT_ID
     handler = callback_handlers.get(callback.data)
     if handler:
         handler(callback, session, bot)
 
 
+# Executes at bot start/restart
+MainProcess().clean_up()
+
 bot.infinity_polling()
+
+

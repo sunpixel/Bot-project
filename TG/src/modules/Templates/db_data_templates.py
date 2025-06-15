@@ -12,15 +12,19 @@ admins_template = {
 
 cart_template = {
     'id': None,
-    'items': None,
-    # This is a connected list with Users
     'user_id': None
 }
 
-products_template = {
+cart_item_template = {
     'id': None,
-    'name': None,
+    'cart_id': None,
+    'product_id': None,
+    'quantity': None
+}
+
+products_template = {
     'image': None,
+    'name': None,
     'details': None,
     'speed': None,
     'capacity': None,
@@ -28,5 +32,5 @@ products_template = {
     'max_temp': None,
     'type': None,
     'price': None,
-    'embedding': None,
+
 }
