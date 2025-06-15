@@ -131,3 +131,24 @@ def handle_more_info(msg, session, bot):
                                reply_markup=markup)
     session.add_message_id(message.message_id)
 
+def handle_buy_cart(callback, session, bot):
+    pass
+
+def handle_do_clear_cart(callback, session, bot):
+    conn = make_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        DELETE from CartItems
+        WHERE quantity > 0 AND cart_id = ?
+    ''', (session.cart_id,))
+    conn.commit()
+    conn.close()
+
+    cart_message = "<b>🛍️ Your Shopping Cart 🛍️</b>\n<pre>\n"
+    cart_message += f"\n{'GRAND TOTAL:':<25}         ₽   0</pre>"
+
+    bot.edit_message_text(text=cart_message,
+                          chat_id=callback.message.chat.id,
+                          message_id=callback.message.message_id,
+                          parse_mode='HTML')
+

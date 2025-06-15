@@ -3,6 +3,7 @@ import sqlite3
 from telebot import types
 from TG.src.modules.Processing.audio import receive_audio, check_audio
 from TG.src.config_manager import config
+from TG.src.modules.Processing.DB_scripts.db_interaction import cart_data_retrival, ensure_cart_created
 
 
 def db_connection():
@@ -258,6 +259,37 @@ def amount_in_table(table_name):
     return 0
 
 
-def get_cart_data(user_id, session):
+def get_cart_data(session):
+    markup = types.InlineKeyboardMarkup(row_width=1)
     if session.cart_id:
-        pass
+        data = cart_data_retrival(session.cart_id)
+    else:
+        ensure_cart_created(session.user_id, session)
+        data = cart_data_retrival(session.cart_id)
+
+    btn_do_return = types.InlineKeyboardButton(
+        text='⏪ Back ⏪',
+        callback_data='do_return'
+    )
+
+    btn_clear_cart = types.InlineKeyboardButton(
+        text='🗑️ Clear cart 🗑️',
+        callback_data='do_clear_cart'
+    )
+
+    btn_buy = types.InlineKeyboardButton(
+        text='✅🛒 Buy 🛒✅',
+        callback_data='buy_cart'
+    )
+
+    markup.add(btn_buy, btn_clear_cart, btn_do_return)
+
+    cart_message = "<b>🛍️ Your Shopping Cart 🛍️</b>\n<pre>\n"
+    for item, qty, price in data:
+        total = price * qty
+        # Format: name left aligned, qty right, price right
+        cart_message += f"{item:<25} │ ×{qty:<2} │ ₽  {total:>7.2f}\n"
+
+    grand_total = sum(price * qty for _, qty, price in data)
+    cart_message += f"\n{'GRAND TOTAL:':<25}         ₽   {grand_total:>7.2f}</pre>"
+    return cart_message, markup

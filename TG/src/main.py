@@ -23,7 +23,9 @@ callback_handlers = {
     'entry_modify': handle_entry_modify,
     'entry_delete': handle_entry_delete,
     'add_to_cart': handle_add_to_cart,
-    'more_info': handle_more_info
+    'more_info': handle_more_info,
+    'buy_cart': handle_buy_cart,
+    'do_clear_cart': handle_do_clear_cart,
 }
 
 class UserSession:
@@ -157,8 +159,10 @@ def on_click(msg):
 
     elif msg.text == 'Cart':
         bot.delete_message(msg.chat.id, msg.message_id)
-        cart_msg = bot.send_message(msg.chat.id, 'You are in cart')
-        get_cart_data(msg.from_user.id, session)
+        session.clean_messages(msg.chat.id)
+        text, markup = get_cart_data(session)
+        cart_msg = bot.send_message(msg.chat.id, text, parse_mode='HTML', reply_markup=markup)
+
         session.add_message_id(cart_msg.message_id)
 
 
@@ -215,5 +219,3 @@ def callback_msg(callback):
 MainProcess().clean_up()
 
 bot.infinity_polling()
-
-

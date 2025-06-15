@@ -88,15 +88,28 @@ def get_specific_product(param):
     conn.close()
     return product
 
-def cart_data_retrival(user_id):
+def cart_data_retrival(cart_id):
     conn = make_connection()
     cursor = conn.cursor()
+
+    to_return = []
+
     cursor.execute('''
-    select * from Cart where
-    ''')
+        SELECT * FROM CartItems 
+        WHERE cart_id = ?
+    ''', (cart_id,))
+    data = cursor.fetchall()
+    result =  [t[-2:] for t in data]
 
-    cart_id = 0
-
-
-
-    return cart_id
+    for a in result:
+        cursor.execute('''
+            SELECT name, price FROM Products
+            WHERE id = ?
+        ''', (a[0],))
+        data = cursor.fetchone()
+        name = data[0]
+        price = data[1]
+        to_return.append([name, a[1], (price * int(a[1])) ])
+    conn.close()
+    print(f'Cart {cart_id} contains: \n {to_return}')
+    return to_return
