@@ -46,7 +46,7 @@ TG/
 ## Requirements
 
 - Python 3.13+
-- [pyTelegramBotAPI (telebot)](https://github.com/eternnoir/pyTelegramBotAPI)
+- [telegram-bot-api)]([https://github.com/eternnoir/pyTelegramBotAPI](https://github.com/tdlib/telegram-bot-api))
 - [Vosk](https://alphacephei.com/vosk/)
 - [Silero TTS](https://github.com/snakers4/silero-models)
 - [SentenceTransformers](https://www.sbert.net/)
