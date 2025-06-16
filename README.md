@@ -52,7 +52,7 @@ TG/
 - [SentenceTransformers](https://www.sbert.net/)
 - [faiss](https://github.com/facebookresearch/faiss)
 - [transformers](https://github.com/huggingface/transformers)
-- ffmpeg (for audio conversion)
+- [ffmpeg](https://ffmpeg.org/)
 
 ## Setup
 
