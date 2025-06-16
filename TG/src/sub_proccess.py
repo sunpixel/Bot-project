@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import aiosqlite
 from telegram import (
     InlineKeyboardButton, InlineKeyboardMarkup,
     ReplyKeyboardMarkup, KeyboardButton, Update
@@ -9,8 +10,8 @@ from TG.src.modules.Processing.audio import receive_audio, check_audio
 from TG.src.config_manager import config
 from TG.src.modules.Processing.DB_scripts.db_interaction import cart_data_retrival, ensure_cart_created
 
-def db_connection():
-    return sqlite3.connect(config.db_path)
+async def db_connection():
+    return await aiosqlite.connect(config.db_path)
 
 class MainProcess:
     def __init__(self):
@@ -39,7 +40,7 @@ class MainProcess:
             resize_keyboard=True
         )
 
-        get_create_user([update.effective_user.id, update.effective_user.username])
+        await get_create_user([update.effective_user.id, update.effective_user.username])
 
         message = await context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -73,38 +74,38 @@ class MainProcess:
                 )
         return message.message_id
 
-def db_select_all_data(table):
-    conn = db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f'''
+async def db_select_all_data(table):
+    conn = await db_connection()
+    cursor = await conn.cursor()
+    await cursor.execute(f'''
     SELECT * FROM {table}
     ''')
-    data = cursor.fetchall()
-    conn.close()
+    data = await cursor.fetchall()
+    await conn.close()
     print(data)
 
-def get_create_user(user_data):
-    conn = db_connection()
-    cursor = conn.cursor()
+async def get_create_user(user_data):
+    conn = await db_connection()
+    cursor = await conn.cursor()
 
     user_id = int(user_data[0])
     username = str(user_data[1])
 
-    cursor.execute('''
+    await cursor.execute('''
     SELECT * FROM Users WHERE user_id = ?
     ''', (user_id,))
 
-    user = cursor.fetchone()
+    user = await cursor.fetchone()
 
     if not user:
-        cursor.execute('''
+        await cursor.execute('''
         INSERT INTO Users (
         user_id,
         username
         ) VALUES (?, ?)
         ''', (user_id, username))
-        conn.commit()
-    conn.close()
+        await conn.commit()
+    await conn.close()
 
 def download_img():
     markup = InlineKeyboardMarkup([
@@ -119,18 +120,18 @@ class MainMenu:
         pass
 
     @staticmethod
-    def main_menu_data(limit=10, offset=0):
-        conn = db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
+    async def main_menu_data(limit=10, offset=0):
+        conn = await db_connection()
+        cursor = await conn.cursor()
+        await cursor.execute(
             'SELECT * FROM Products LIMIT ? OFFSET ?', (limit, offset)
         )
-        data = cursor.fetchall()
+        data = await cursor.fetchall()
         display_data = []
         for row in data:
             data = {'name': row[2], 'price': row[9]}
             display_data.append(data)
-        conn.close()
+        await conn.close()
         return display_data
 
     @staticmethod
@@ -163,11 +164,11 @@ class MainMenu:
         offset = data_set_atr[1]
         total = data_set_atr[2]
 
-        menu_data = MainMenu.main_menu_data(limit, offset)
+        menu_data = await MainMenu.main_menu_data(limit, offset)
         for data in menu_data:
             markup = self.main_menu_msg(data, [limit, offset, total])
             message = await context.bot.send_message(
-                update.effective_chat.id,
+                update.chat.id,  # <-- FIXED
                 str(data['name']),
                 reply_markup=markup,
                 parse_mode=ParseMode.HTML
@@ -176,36 +177,38 @@ class MainMenu:
             session.add_message_id(message.message_id)
         markup = self.extra_menu_message(total, limit, offset)
         message = await context.bot.send_message(
-            update.effective_chat.id,
+            update.chat.id,  # <-- FIXED
             '-' * 20,
             reply_markup=markup,
             parse_mode=ParseMode.HTML
         )
         session.add_message_id(message.message_id)
 
-def amount_in_table(table_name):
-    conn = db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f'''
+async def amount_in_table(table_name):
+    conn = await db_connection()
+    cursor = await conn.cursor()
+    await cursor.execute(f'''
         SELECT count(*) FROM {table_name}
     ''')
-    total = cursor.fetchone()[0]
-    conn.close()
+    row = await cursor.fetchone()
+    total = int(row[0]) if row else 0
+    print(f'amount in table: {total}')
+    await conn.close()
     if total:
         return total
     return 0
 
-def get_cart_data(session):
+async def get_cart_data(session):
     markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('✅🛒 Buy 🛒✅', callback_data='buy_cart')],
         [InlineKeyboardButton('🗑️ Clear cart 🗑️', callback_data='do_clear_cart')],
         [InlineKeyboardButton('⏪ Back ⏪', callback_data='do_return')]
     ])
     if session.cart_id:
-        data = cart_data_retrival(session.cart_id)
+        data = await cart_data_retrival(session.cart_id)
     else:
-        ensure_cart_created(session.user_id, session)
-        data = cart_data_retrival(session.cart_id)
+        await ensure_cart_created(session.user_id, session)
+        data = await cart_data_retrival(session.cart_id)
 
     cart_message = "<b>🛍️ Your Shopping Cart 🛍️</b>\n<pre>\n"
     for item, qty, price in data:
@@ -214,3 +217,4 @@ def get_cart_data(session):
 
     grand_total = sum(price * qty for _, qty, price in data)
     cart_message += f"\n{'GRAND TOTAL:':<25}         ₽   {grand_total:>7.2f}</pre>"
+    return cart_message, markup

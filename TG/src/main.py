@@ -81,12 +81,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session.add_message_id(update.message.message_id)
     await session.clean_messages(update.effective_chat.id, context)
     session.clear_text_data()
-    await MainProcess().start_func(update, context.bot)
+    await MainProcess().start_func(update, context)
 
 async def process_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
     session.set_user_id(update.effective_user.id)
-    await MainProcess().audio(update, context.bot)
+    await MainProcess().audio(update, context)
 
 async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
@@ -111,7 +111,7 @@ async def admin_execution(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = await context.bot.send_message(update.effective_chat.id, 'Permission Denied')
         session.add_message_id(message.message_id)
         await session.clean_messages(update.effective_chat.id, context)
-        await MainProcess().start_func(update, context.bot)
+        await MainProcess().start_func(update, context)
         session.admin = None
     await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
 
@@ -126,18 +126,18 @@ async def on_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         session.add_message_id(search_msg.message_id)
 
     elif text == 'Main':
-        session.total = amount_in_table('Products')
+        session.total = await amount_in_table('Products')
         await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
         session.clear_text_data()
         await session.clean_messages(update.effective_chat.id, context)
         await MainMenu().main_menu_handler(
-            context.bot, update, session, [session.limit, session.offset, session.total]
+            context, update.message, session, [session.limit, session.offset, session.total]
         )
 
     elif text == 'Cart':
         await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
         await session.clean_messages(update.effective_chat.id, context)
-        text, markup = get_cart_data(session)
+        text, markup = await get_cart_data(session)
         cart_msg = await context.bot.send_message(
             update.effective_chat.id, text, parse_mode='HTML', reply_markup=markup
         )
@@ -150,7 +150,7 @@ async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = query.from_user.id
     session = get_user_session(user_id)
     session.set_user_id(user_id)
-    session.total = amount_in_table('Products')
+    session.total = await amount_in_table('Products')
 
     if query.data in ['previous_page', 'next_page']:
         await session.clean_messages(query.message.chat.id, context)
@@ -158,33 +158,33 @@ async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         offset_change = -10 if query.data == 'previous_page' else 10
         session.update_pagination(offset_change)
         await MainMenu().main_menu_handler(
-            context.bot, query.message, session, [session.limit, session.offset, session.total]
+            context, query.message, session, [session.limit, session.offset, session.total]
         )
 
     elif query.data == 'do_return':
         await session.clean_messages(query.message.chat.id, context)
         session.clear_text_data()
         await MainMenu().main_menu_handler(
-            context.bot, query.message, session, [session.limit, session.offset, session.total]
+            context, query.message, session, [session.limit, session.offset, session.total]
         )
 
     handler = callback_handlers.get(query.data)
     if handler:
-        await handler(query, session, context.bot)
+        await handler(query, session, context)
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pass  # Optionally handle unknown commands/messages
 
-def main():
-    MainProcess().clean_up()
-    application = ApplicationBuilder().token(config.get_api_key('telegram')).build()
 
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('test', test))
-    application.add_handler(CommandHandler('admin', admin_execution))
-    application.add_handler(MessageHandler(filters.AUDIO | filters.VOICE, process_audio))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_click))
-    application.add_handler(CallbackQueryHandler(callback_msg))
-    application.add_handler(MessageHandler(filters.ALL, unknown))
+MainProcess().clean_up()
+application = ApplicationBuilder().token(config.get_api_key('telegram')).build()
 
-    application.run_polling()
+application.add_handler(CommandHandler('start', start))
+application.add_handler(CommandHandler('test', test))
+application.add_handler(CommandHandler('admin', admin_execution))
+application.add_handler(MessageHandler(filters.AUDIO | filters.VOICE, process_audio))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_click))
+application.add_handler(CallbackQueryHandler(callback_msg))
+application.add_handler(MessageHandler(filters.ALL, unknown))
+
+application.run_polling()
