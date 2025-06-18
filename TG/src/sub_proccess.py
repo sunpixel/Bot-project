@@ -246,7 +246,6 @@ async def send_image_blob(name):
         image = await cursor.fetchone()
         if image[0] is not None:
             image_blob = image[0]
-            print(image[0])
             image_stream = BytesIO(image_blob)
             # Telegram requires a name for all sent files
             image_stream.name = f"{name.strip()}.jpeg"

@@ -100,15 +100,7 @@ async def handle_delete(callback, session, context):
     await context.bot.delete_message(callback.message.chat.id, callback.message.message_id)
 
 async def handle_add_to_cart(msg, session, context):
-    string = str(msg.message.text)
-    db_search = None
-    if '\n' in string:
-        for line in string.split('\n'):
-            if line.startswith('name:'):
-                db_search = line.split(':', 1)[1].strip()
-                break
-    else:
-        db_search = string
+    db_search = msg.message.caption.split('\n', 1)[0]
     await on_add_to_cart(session, db_search)
 
 async def handle_more_info(msg, session, context):
