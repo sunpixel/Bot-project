@@ -41,6 +41,10 @@ class UserSession:
         self.admin = None
         self.message_ids = []
         self.text_data = []
+        # Used for amin interaction handler
+        self.next_step_handler = None
+        self.step = 0
+        self.data_collected = []
 
     def update_pagination(self, offset_change=0):
         self.offset += offset_change
@@ -123,6 +127,9 @@ async def on_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
     session.set_user_id(update.effective_user.id)
     text = update.message.text
+
+
+    # Keyboard functionality
 
     if text == 'Search':
         await context.bot.delete_message(update.effective_chat.id, update.message.message_id)

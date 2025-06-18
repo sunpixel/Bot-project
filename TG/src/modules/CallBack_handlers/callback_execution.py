@@ -13,13 +13,18 @@ async def handle_admin_add(callback, session, context):
         'Please provide user_id or username and command list, everything should be separated by whitespace'
     )
     session.add_message_id(msg.message_id)
+    session.next_handler = 'admin_add_input'
+    session.step = 0
+    session.collected_data = []
 
 
 async def handle_admin_add_input(message, session, context):
     parts = [p.strip() for p in message.text.split()]
     user_id = int(parts[0])
     commands = parts[1:]
+    # Deletes user input
     await context.bot.delete_message(message.chat.id, message.message_id)
+    # Clears bot msgs
     await session.clean_messages(message.chat.id, context)
     print(session.admin.admin_add([user_id, commands]))
 
@@ -160,6 +165,20 @@ async def handle_do_clear_cart(callback, session, context):
         reply_markup=markup,
         parse_mode=ParseMode.HTML
     )
+
+async def get_all_users(is_admin: bool):
+    conn = await make_connection()
+    cursor = await conn.cursor()
+
+    # Retrieve all admins
+    if is_admin:
+        sql = f'SELECT * from Users where user_id in (select user_id from admins)'
+    # Retrieve all NOT admins
+    else:
+        sql = f'SELECT * from Users where user_id not in (select user_id from admins)'
+
+    await cursor.execute(sql)
+    data = await cursor.fetchall()
 
 async def handle_buy_now(callback, session, context):
     pass
