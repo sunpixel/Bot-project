@@ -1,10 +1,3 @@
-import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from TG.src.modules.Optional.admin_msg_handler import AdminMessageHandler
-from TG.src.modules.Templates.db_data_templates import products_template
-from TG.src.config_manager import config
-from TG.src.modules.Processing.DB_scripts.db_interaction import get_specific_product
-
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters

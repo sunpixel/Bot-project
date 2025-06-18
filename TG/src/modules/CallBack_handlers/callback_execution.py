@@ -1,4 +1,3 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from TG.src.modules.Optional.admin_msg_handler import *
 from TG.src.modules.Processing.DB_scripts.db_interaction import *
@@ -45,7 +44,7 @@ async def handle_admin_delete_input(message, session, context):
         await session.clean_messages(message.chat.id, context)
         user_id = int(message.text)
         session.admin.admin_delete(user_id)
-    except Exception:
+    except TypeError:
         pass
 
 async def handle_entry_new(callback, session, context):
@@ -72,11 +71,11 @@ async def handle_entry_delete_input(message, session, context):
         try:
             entry_id = int(message.text)
             session.admin.delete_entry(entry_id, 'id')
-        except Exception:
+        except TypeError:
             entry_name = message.text.strip()
             session.admin.delete_entry(entry_name, 'name')
-    except Exception:
-        pass
+    except Exception as e:
+        print(f'Unhandled error: {e}')
 
 async def handle_entry_modify(callback, session, context):
     await session.clean_messages(callback.message.chat.id, context)
