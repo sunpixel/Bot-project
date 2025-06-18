@@ -3,6 +3,8 @@ from telegram.constants import ParseMode
 from TG.src.modules.Optional.admin_msg_handler import *
 from TG.src.modules.Processing.DB_scripts.db_interaction import *
 from TG.src.modules.Templates.db_data_templates import products_template
+from TG.src.sub_proccess import send_image_blob
+
 
 # All handler functions now use context instead of bot
 
@@ -112,31 +114,42 @@ async def handle_add_to_cart(msg, session, context):
 async def handle_more_info(msg, session, context):
     msg_id = msg.message.message_id
     product = products_template.copy()
-    db_search = session.text_data[session.message_ids.index(msg_id)]
+    db_search = msg.message.caption.split('\n', 1)[0]
     data = await get_specific_product(db_search)
+    image_stream = None
+
     i = 1   # Made so that ID is not displayed
     for key in product.keys():
-        product[key] = data[i]
+        if key == 'image':
+            image_stream = await send_image_blob(db_search)
+        else:
+            # Sets values
+            product[key] = data[i]
         i += 1
     await session.clean_messages(msg.message.chat.id, context)
     text = ''
     for key, value in product.items():
-        text += f"{key}: {value}\n"
+        if key == 'image':
+            pass
+        else:
+            text += (f"{key}: {value}\n"
+                     f"{'-'* 10}\n")
 
     markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('🔥 Buy Now 🔥', callback_data='buy_now')],
         [InlineKeyboardButton('🛒 Add to Cart 🛒', callback_data='add_to_cart')],
         [InlineKeyboardButton('⏪ Back ⏪', callback_data='do_return')]
     ])
-    message = await context.bot.send_message(
+    message = await context.bot.send_photo(
         msg.message.chat.id,
-        text,
+        photo=image_stream,
+        caption=text,
         reply_markup=markup
     )
     session.add_message_id(message.message_id)
 
+
 async def handle_buy_cart(callback, session, context):
-    # Implement your buy cart logic here
     pass
 
 async def handle_do_clear_cart(callback, session, context):

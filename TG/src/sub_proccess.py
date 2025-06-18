@@ -164,6 +164,7 @@ class MainMenu:
         for data in menu_data:
 
             image_stream = await send_image_blob(data['name'])
+
             text = f"{data['name']}\n" + "—" * 10 + f"\nPrice: {data['price']}"
             markup = self.main_menu_msg()
             if image_stream:
@@ -175,12 +176,15 @@ class MainMenu:
                 )
                 session.add_text_data(message.caption)
             else:
-                message = await context.bot.send_message(
-                    update.chat.id,
-                    text,
-                    reply_markup=markup,
-                    parse_mode=ParseMode.HTML
+                place_holder_path = os.path.abspath(os.path.join(config.data_path, 'DataBase', 'No_Image.jpeg'))
+                print(place_holder_path)
+                message= await context.bot.send_photo(
+                    chat_id=update.chat.id,
+                    photo=open(place_holder_path, "rb"),
+                    caption=text,
+                    reply_markup=markup
                 )
+                session.add_text_data(message.caption)
                 session.add_text_data(message.text)
 
             session.add_message_id(message.message_id)
@@ -202,7 +206,6 @@ async def amount_in_table(table_name):
     ''')
     row = await cursor.fetchone()
     total = int(row[0]) if row else 0
-    print(f'amount in table: {total}')
     await conn.close()
     if total:
         return total
@@ -239,11 +242,26 @@ async def send_image_blob(name):
         WHERE name = ?
     ''', (name,))
 
-    image = cursor.fetchone()
-    image_blob = image[0]
+    try:
+        image = await cursor.fetchone()
+        if image[0] is not None:
+            image_blob = image[0]
+            print(image[0])
+            image_stream = BytesIO(image_blob)
+            # Telegram requires a name for all sent files
+            image_stream.name = f"{name.strip()}.jpeg"
+        else:
+            place_holder_path = os.path.abspath(
+                os.path.join(config.data_path, 'DataBase', 'No_Image.jpeg'))
+            with open(place_holder_path, 'rb') as file:
+                image_blob = file.read()
+            image_stream = BytesIO(image_blob)
+            # Telegram requires a name for all sent files
+            image_stream.name = f"{name.strip()}.jpeg"
+        return image_stream
 
-    image_stream = BytesIO(image_blob)
-    # Telegram requires a name for all sent files
-    image_stream.name = f"{name.strip()}.jpg"
 
-    return image_stream
+    except Exception as e:
+        print(f'Image retrival error: {e}')
+        return None
+

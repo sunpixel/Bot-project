@@ -1,3 +1,4 @@
-from TG.src.config_manager import config
+ab = {'image': 'Value', 'name': None, 'details': None, 'speed': None, 'capacity': None, 'min_temp': None, 'max_temp': None, 'type': None, 'price': None}
 
-print (config.db_path)
+for i in ab.keys():
+    print(ab.get(i))

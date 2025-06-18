@@ -102,6 +102,8 @@ async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
     update_all_product_embeddings()
 
+# Handles admin command interaction
+
 async def admin_execution(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
     session.set_user_id(update.effective_user.id)
@@ -111,13 +113,12 @@ async def admin_execution(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if session.admin.check_permission(update.effective_user.id):
         markup = session.admin.admin_commands()
         message = await context.bot.send_message(
-            update.effective_chat.id, 'You are an administrator',
+            update.effective_chat.id,
+            'You are an administrator',
             reply_markup=markup
         )
         session.add_message_id(message.message_id)
     else:
-        message = await context.bot.send_message(update.effective_chat.id, 'Permission Denied')
-        session.add_message_id(message.message_id)
         await session.clean_messages(update.effective_chat.id, context)
         await MainProcess().start_func(update, context)
         session.admin = None
@@ -128,10 +129,20 @@ async def on_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session.set_user_id(update.effective_user.id)
     text = update.message.text
 
+    if session.next_step_handler == 'admin_add_input':
+        await handle_admin_add_input(update.message, session, context)
 
+    elif session.next_step_handler == 'admin_add_input':
+        await handle_admin_add_input(update.message, session, context)
+
+    elif session.next_step_handler == 'admin_add_input':
+        await handle_admin_add_input(update.message, session, context)
+
+    elif session.next_step_handler == 'admin_add_input':
+        await handle_admin_add_input(update.message, session, context)
     # Keyboard functionality
 
-    if text == 'Search':
+    elif text == 'Search':
         await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
         search_msg = await context.bot.send_message(update.effective_chat.id, 'Enter your query:')
         session.add_message_id(search_msg.message_id)
