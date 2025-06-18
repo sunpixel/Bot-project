@@ -110,3 +110,12 @@ async def cart_data_retrival(cart_id):
     await conn.close()
     print(f'Cart {cart_id} contains: \n {to_return}')
     return to_return
+
+async def convert_from_bytes(blob_data, full_file_path):
+    with open(full_file_path, 'wb') as file:
+        img = file.write(blob_data)
+        print(f'Data saved to: {full_file_path}')
+
+
+
+

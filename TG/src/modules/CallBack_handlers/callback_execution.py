@@ -13,7 +13,7 @@ async def handle_admin_add(callback, session, context):
         'Please provide user_id or username and command list, everything should be separated by whitespace'
     )
     session.add_message_id(msg.message_id)
-    # You need to implement a mechanism for the next step (e.g., ConversationHandler in python-telegram-bot)
+
 
 async def handle_admin_add_input(message, session, context):
     parts = [p.strip() for p in message.text.split()]
@@ -160,3 +160,6 @@ async def handle_do_clear_cart(callback, session, context):
         reply_markup=markup,
         parse_mode=ParseMode.HTML
     )
+
+async def handle_buy_now(callback, session, context):
+    pass

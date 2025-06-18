@@ -1,18 +1,20 @@
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from TG.src.modules.Optional.admin_msg_handler import AdminMessageHandler
+from TG.src.modules.Templates.db_data_templates import products_template
+from TG.src.config_manager import config
+from TG.src.modules.Processing.DB_scripts.db_interaction import get_specific_product
+
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters
 )
-
-from TG.src.modules.Optional.admin_msg_handler import AdminMessageHandler
-from TG.src.modules.Templates.db_data_templates import products_template
 from sub_proccess import *
-from TG.src.config_manager import config
 from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
 from TG.src.modules.CallBack_handlers.callback_execution import *
-from TG.src.modules.Processing.DB_scripts.db_interaction import get_specific_product
+from TG.src.modules.Processing.ML_Embeded import get_response
+
 
 callback_handlers = {
     'delete': handle_delete,
@@ -24,6 +26,7 @@ callback_handlers = {
     'entry_delete': handle_entry_delete,
     'add_to_cart': handle_add_to_cart,
     'more_info': handle_more_info,
+    'buy_now': handle_buy_now,
     'buy_cart': handle_buy_cart,
     'do_clear_cart': handle_do_clear_cart,
 }
@@ -66,9 +69,9 @@ class UserSession:
                 print(f"Error deleting message {msg_id}: {e}")
         self.message_ids = []
 
-    def set_user_id(self, id):
+    def set_user_id(self, id1):
         if not self.user_id:
-            self.user_id = id
+            self.user_id = id1
 
 user_sessions = defaultdict(UserSession)
 
@@ -87,6 +90,7 @@ async def process_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
     session.set_user_id(update.effective_user.id)
     await MainProcess().audio(update, context)
+    return
 
 async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
@@ -173,7 +177,17 @@ async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handler(query, session, context)
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    pass  # Optionally handle unknown commands/messages
+    # Get the user's message text
+    user_query = update.message.text
+    # Use ML_Embedded to get the best response
+    results = get_response(user_query)
+    if results:
+        # results is a list of (question, answer) tuples, take the best one
+        _, answer = results[0]
+        await context.bot.send_message(update.effective_chat.id, answer)
+    else:
+        await context.bot.send_message(update.effective_chat.id, "Sorry, I couldn't find an answer to your question.")
+
 
 
 MainProcess().clean_up()

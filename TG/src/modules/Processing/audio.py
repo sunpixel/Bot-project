@@ -31,7 +31,7 @@ async def receive_audio(update, context):
     convert_audio(download_path, out_file, 'wav')
 
     # Speech-to-text
-    sml_model = os.path.abspath(os.path.join(config.data_path, "Models", "vosk-model-small-ru-0.22"))
+    sml_model = os.path.abspath(os.path.join(config.data_path, "Models", "vosk-model-small-en-us-0.15"))
     stt = STT(modelpath=sml_model)
     speech = stt.recognize_file(out_file)
 
@@ -39,7 +39,7 @@ async def receive_audio(update, context):
 
 async def check_audio(text, update, context, name):
     # Simple voice command recognition
-    if text in ['старт', 'начать', 'привет']:
-        return tts_make('Привет', filename=name)
+    if text in ['hi']:
+        return tts_make('Hi there brother', filename=name)
     else:
         return None

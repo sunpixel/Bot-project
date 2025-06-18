@@ -1,11 +1,11 @@
 import os
-import sqlite3
 import aiosqlite
 from telegram import (
     InlineKeyboardButton, InlineKeyboardMarkup,
     ReplyKeyboardMarkup, KeyboardButton, Update
 )
 from telegram.constants import ParseMode
+from io import BytesIO
 from TG.src.modules.Processing.audio import receive_audio, check_audio
 from TG.src.config_manager import config
 from TG.src.modules.Processing.DB_scripts.db_interaction import cart_data_retrival, ensure_cart_created
@@ -135,11 +135,7 @@ class MainMenu:
         return display_data
 
     @staticmethod
-    def main_menu_msg(data, data_set_atr):
-        limit = data_set_atr[0]
-        offset = data_set_atr[1]
-        total = data_set_atr[2]
-
+    def main_menu_msg():
         markup = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton('🛒 Add to Cart 🛒', callback_data='add_to_cart'),
@@ -166,18 +162,32 @@ class MainMenu:
 
         menu_data = await MainMenu.main_menu_data(limit, offset)
         for data in menu_data:
-            markup = self.main_menu_msg(data, [limit, offset, total])
-            message = await context.bot.send_message(
-                update.chat.id,  # <-- FIXED
-                str(data['name']),
-                reply_markup=markup,
-                parse_mode=ParseMode.HTML
-            )
-            session.add_text_data(message.text)
+
+            image_stream = await send_image_blob(data['name'])
+            text = f"{data['name']}\n" + "—" * 10 + f"\nPrice: {data['price']}"
+            markup = self.main_menu_msg()
+            if image_stream:
+                message= await context.bot.send_photo(
+                    chat_id=update.chat.id,
+                    photo=image_stream,
+                    caption=text,
+                    reply_markup=markup
+                )
+                session.add_text_data(message.caption)
+            else:
+                message = await context.bot.send_message(
+                    update.chat.id,
+                    text,
+                    reply_markup=markup,
+                    parse_mode=ParseMode.HTML
+                )
+                session.add_text_data(message.text)
+
             session.add_message_id(message.message_id)
+
         markup = self.extra_menu_message(total, limit, offset)
         message = await context.bot.send_message(
-            update.chat.id,  # <-- FIXED
+            update.chat.id,
             '-' * 20,
             reply_markup=markup,
             parse_mode=ParseMode.HTML
@@ -218,3 +228,22 @@ async def get_cart_data(session):
     grand_total = sum(price * qty for _, qty, price in data)
     cart_message += f"\n{'GRAND TOTAL:':<25}         ₽   {grand_total:>7.2f}</pre>"
     return cart_message, markup
+
+
+async def send_image_blob(name):
+    conn = await db_connection()
+    cursor = await conn.cursor()
+
+    await cursor.execute('''
+        SELECT image FROM Products
+        WHERE name = ?
+    ''', (name,))
+
+    image = cursor.fetchone()
+    image_blob = image[0]
+
+    image_stream = BytesIO(image_blob)
+    # Telegram requires a name for all sent files
+    image_stream.name = f"{name.strip()}.jpg"
+
+    return image_stream

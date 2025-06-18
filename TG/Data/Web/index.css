@@ -1,0 +1,46 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #000000);
+}
+
+.cart {
+  max-width: 600px;
+  margin: auto;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--tg-theme-hint-color, #ccc);
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.item-details {
+  text-align: right;
+}
+
+.total {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 0 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.place-order {
+  width: 100%;
+  padding: 12px;
+  font-size: 1em;
+  background-color: var(--tg-theme-button-color, #2cab37);
+  color: var(--tg-theme-button-text-color, #ffffff);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
