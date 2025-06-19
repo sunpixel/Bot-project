@@ -77,7 +77,10 @@ async def add_new_admin(user_data):
 async def delete_admin(user_data):
     conn = await make_connection()
     cursor = await conn.cursor()
-    user_id = int(user_data)
+    try:
+        user_id = int(user_data)
+    except TypeError:
+        print('User_id is not an int')
 
     try:
         await cursor.execute('''

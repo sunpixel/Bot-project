@@ -27,7 +27,7 @@ async def handle_admin_add_input(message, session, context):
     await context.bot.delete_message(message.chat.id, message.message_id)
     # Clears bot msgs
     await session.clean_messages(message.chat.id, context)
-    print(session.admin.admin_add([user_id, commands]))
+    await session.admin.admin_add([user_id, commands])
 
 async def handle_admin_delete(callback, session, context):
     await session.clean_messages(callback.message.chat.id, context)

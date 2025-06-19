@@ -22,22 +22,22 @@ class AdminMessageHandler:
             return InlineKeyboardMarkup(buttons)
         return None
 
-    def admin_add(self, user_data):
+    async def admin_add(self, user_data):
         if self.is_admin and 'add_admin' in self.allowed_commands:
-            add_new_admin(user_data)
+            await add_new_admin(user_data)
             return 'admin added'
         else:
             return 'permission denied'
 
-    def admin_delete(self, user_data):
+    async def admin_delete(self, user_data):
         if self.is_admin and 'delete_admin' in self.allowed_commands:
-            delete_admin(user_data)
+            await delete_admin(user_data)
             return 'admin deleted'
         else:
             return 'permission denied'
 
-    def check_permission(self, user_id: int):
-        admin = check_existence('admins', 'user_id', user_id)
+    async def check_permission(self, user_id: int):
+        admin = await check_existence('admins', 'user_id', user_id)
         if admin:
             print('Entered permission_check')
             self.is_admin = True
