@@ -2,6 +2,7 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters
 )
+from telegram import WebAppInfo
 from sub_proccess import *
 from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
