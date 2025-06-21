@@ -153,8 +153,18 @@ async def handle_do_clear_cart(callback, session, context):
     await conn.commit()
     await conn.close()
 
+    """
+    HERE YOU NEED TO SET UP YOUR WEBAPP URL
+    This URL should point to your web application that handles the cart.
+    SO ROOT URL SHOULD BE YOUR NGROK URL and USER_ID SHOULD BE YOUR USER ID
+    For example, if your ngrok URL is https://example.ngrok.io and your user_id is 123456,
+    the webapp_url would be:
+    https://example.ngrok.io/123456
+    """
+    webapp_url = f"https://YOUR_NGROK_URL/{session.user_id}"
+
     markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton('✅🛒 Buy 🛒✅', callback_data='buy_cart')],
+        [InlineKeyboardButton('✅🛒 Buy 🛒✅', web_app=WebAppInfo(url=webapp_url))],
         [InlineKeyboardButton('🗑️ Clear cart 🗑️', callback_data='do_clear_cart')],
         [InlineKeyboardButton('⏪ Back ⏪', callback_data='do_return')]
     ])
