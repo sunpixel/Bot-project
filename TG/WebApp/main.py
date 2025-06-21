@@ -74,6 +74,19 @@ async def update_cart(cart_id: int, request: Request):
     await conn.close()
     return {"status": "success"}
 
+@app.delete('/cart/${cartId}/item/${productId}')
+async def delete_item(cart_id: int, product_id: int):
+	conn = await make_connection()
+	cursor = await conn.cursor()
+	await cursor.execute("""
+		DELETE FROM CartItems
+		WHERE cart_id = ? AND product_id = ?
+	""", (cart_id, product_id))
+	await conn.commit()
+	await cursor.close()
+	await conn.close()
+
+
 @app.post('/buy/{cart_id}')
 async def buy_cart(cart_id = -1):
 	if cart_id != -1:
@@ -81,13 +94,14 @@ async def buy_cart(cart_id = -1):
 		cursor = await conn.cursor()
 		await cursor.execute("""
                              SELECT Products.name,
-                                    CartItems.quantity
+                                    CartItems.quantity,
+	                                Products.price
                              FROM CartItems
                                       JOIN Products ON CartItems.product_id = Products.id
                              WHERE CartItems.cart_id = ?
 		                     """, (cart_id,))
 		data = await cursor.fetchall()
-		total = lambda x: sum(item[1] for item in x)
+		total = lambda x: sum(item[1] * item[2] for item in x)
 		total_price = total(data)
 		return {"total": total_price}
 
