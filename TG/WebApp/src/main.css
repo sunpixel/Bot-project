@@ -1,0 +1,146 @@
+/* Telegram WebApp CSS variables fallback */
+:root {
+    --tg-theme-bg-color: #17212b;
+    --tg-theme-text-color: #fff;
+    --tg-theme-hint-color: #a8a8a8;
+    --tg-theme-link-color: #61dafb;
+    --tg-theme-button-color: #229ED9;
+    --tg-theme-button-text-color: #fff;
+    --tg-theme-secondary-bg-color: #232e3c;
+    --tg-theme-header-bg-color: #229ED9;
+    --tg-theme-header-text-color: #fff;
+    --tg-theme-destructive-text-color: #ef5b5b;
+}
+
+body {
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.tg-cart {
+    max-width: 420px;
+    margin: 40px auto;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.tg-cart-header {
+    background: var(--tg-theme-header-bg-color);
+    color: var(--tg-theme-header-text-color);
+    padding: 24px 20px 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.tg-cart-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.tg-cart-summary {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1em;
+    color: var(--tg-theme-hint-color);
+}
+
+.tg-cart-items {
+    min-height: 180px;
+    padding: 20px;
+}
+
+.tg-cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.tg-cart-item:last-child {
+    border-bottom: none;
+}
+
+.tg-cart-item-name {
+    font-weight: 500;
+    color: var(--tg-theme-text-color);
+}
+
+.tg-cart-item-qty {
+    color: var(--tg-theme-hint-color);
+    font-size: 0.98em;
+}
+
+.tg-empty-cart {
+    text-align: center;
+    color: var(--tg-theme-hint-color);
+    margin-top: 40px;
+}
+
+.tg-empty-cart img {
+    width: 60px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.tg-cart-footer {
+    padding: 18px 20px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    text-align: right;
+}
+
+.tg-checkout-btn {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tg-checkout-btn:disabled {
+    background: #3a7ca5;
+    color: #d1eaff;
+    cursor: not-allowed;
+}
+
+.tg-cart-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tg-btn {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tg-btn-del {
+    background: var(--tg-theme-destructive-text-color);
+    color: #fff;
+    font-size: 1.1em;
+    padding: 4px 10px;
+}
+
+.tg-btn:disabled {
+    background: #3a7ca5;
+    color: #d1eaff;
+    cursor: not-allowed;
+}

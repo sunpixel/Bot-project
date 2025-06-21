@@ -2,9 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Main</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Cart</title>
+    <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
-
+    <div class="tg-cart">
+        <header class="tg-cart-header">
+            <h2>Your Cart</h2>
+            <div class="tg-cart-summary">
+                <span id="item-count">0 items</span>
+                <span id="total-price">$0.00</span>
+            </div>
+        </header>
+        <div class="tg-cart-items" id="cart-items">
+            <div class="tg-empty-cart" id="empty-cart">
+                <img src="https://telegram.org/img/t_logo.png" alt="Telegram Logo">
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <footer class="tg-cart-footer">
+            <button class="tg-checkout-btn" id="checkout-btn" disabled>Proceed to Checkout</button>
+        </footer>
+    </div>
+    <script src="/static/main.js"></script>
 </body>
 </html>
