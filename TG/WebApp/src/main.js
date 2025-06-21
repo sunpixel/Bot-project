@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch(`/buy/${cartId}`, { method: 'POST' });
             const result = await response.json();
-            alert(`Total price: ${result.total}`);
+            alert(`Total price: ${result.total.toFixed(2)}`);
         } catch (err) {
             alert('Checkout failed!');
         }

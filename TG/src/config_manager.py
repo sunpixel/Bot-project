@@ -34,7 +34,8 @@ class ConfigManager:
             'secret_key': 'change-me-to-a-random-string'
         }
         self.config['api_keys'] = {
-            'telegram': ''
+            'telegram': '',
+            'url': '',  # Add url key to default config
         }
         self.config['logging'] = {
             'level': 'INFO',
@@ -72,6 +73,16 @@ class ConfigManager:
     @property
     def secret_key(self) -> str:
         return self.config.get('security', 'secret_key')
+
+
+    @property
+    def webapp_url(self) -> Union[str, None]:
+        """Get the webapp url from api_keys section"""
+        try:
+            url = self.config.get('api_keys', 'url')
+            return url.strip().strip('"') if url else None
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            return None
 
     def get_api_key(self, service: str) -> Union[str, None]:
         try:

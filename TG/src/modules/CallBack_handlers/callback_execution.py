@@ -1,4 +1,5 @@
 from telegram.constants import ParseMode
+from telegram import WebAppInfo
 from TG.src.modules.Optional.admin_msg_handler import *
 from TG.src.modules.Processing.DB_scripts.db_interaction import *
 from TG.src.modules.Templates.db_data_templates import products_template
@@ -161,7 +162,7 @@ async def handle_do_clear_cart(callback, session, context):
     the webapp_url would be:
     https://example.ngrok.io/123456
     """
-    webapp_url = f"https://YOUR_NGROK_URL/{session.user_id}"
+    webapp_url =  config.webapp_url + str(session.user_id)
 
     markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('✅🛒 Buy 🛒✅', web_app=WebAppInfo(url=webapp_url))],

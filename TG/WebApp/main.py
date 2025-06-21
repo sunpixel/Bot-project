@@ -74,17 +74,17 @@ async def update_cart(cart_id: int, request: Request):
     await conn.close()
     return {"status": "success"}
 
-@app.delete('/cart/${cartId}/item/${productId}')
+@app.delete('/cart/{cart_id}/item/{product_id}')
 async def delete_item(cart_id: int, product_id: int):
-	conn = await make_connection()
-	cursor = await conn.cursor()
-	await cursor.execute("""
-		DELETE FROM CartItems
-		WHERE cart_id = ? AND product_id = ?
-	""", (cart_id, product_id))
-	await conn.commit()
-	await cursor.close()
-	await conn.close()
+    conn = await make_connection()
+    cursor = await conn.cursor()
+    await cursor.execute("""
+        DELETE FROM CartItems
+        WHERE cart_id = ? AND product_id = ?
+    """, (cart_id, product_id))
+    await conn.commit()
+    await cursor.close()
+    await conn.close()
 
 
 @app.post('/buy/{cart_id}')
@@ -106,7 +106,21 @@ async def buy_cart(cart_id = -1):
 		return {"total": total_price}
 
 @app.post('/buy')
-def buy_products(product: dict):
-	return {'Data': product}
+async def buy_products(product: dict):
+    # Load the HTML template
+    html_path = os.path.join(os.path.dirname(__file__), "src", "main.html")
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    # Inject product data as a JS variable before </body>
+    product_js = f"""
+    <script>
+        window.PREDEFINED_PRODUCT = {product};
+    </script>
+    """
+    html = html.replace("</body>", product_js + "\n</body>")
+
+    return HTMLResponse(content=html)
+
 
 

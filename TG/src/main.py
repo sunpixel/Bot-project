@@ -2,7 +2,7 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters
 )
-from telegram import WebAppInfo
+
 from sub_proccess import *
 from collections import defaultdict
 from TG.src.modules.Processing.DB_scripts.db_semantic_search import *
@@ -82,7 +82,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session.add_message_id(update.message.message_id)
     await session.clean_messages(update.effective_chat.id, context)
     session.clear_text_data()
-    await MainProcess().start_func(update, context)
+    await MainProcess().start_func(update, context, session)
 
 async def process_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
@@ -104,7 +104,7 @@ async def admin_execution(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await session.clean_messages(update.effective_chat.id, context)
     await context.bot.send_chat_action(update.effective_chat.id, 'typing')
     session.admin = AdminMessageHandler()
-    if session.admin.check_permission(update.effective_user.id):
+    if await session.admin.check_permission(update.effective_user.id):
         markup = session.admin.admin_commands()
         message = await context.bot.send_message(
             update.effective_chat.id,

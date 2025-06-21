@@ -2,7 +2,7 @@ import os
 import aiosqlite
 from telegram import (
     InlineKeyboardButton, InlineKeyboardMarkup,
-    ReplyKeyboardMarkup, KeyboardButton, Update
+    ReplyKeyboardMarkup, KeyboardButton, Update, WebAppInfo
 )
 from telegram.constants import ParseMode
 from io import BytesIO
@@ -31,11 +31,13 @@ class MainProcess:
                 os.remove(os.path.join(items[1], item))
 
     @staticmethod
-    async def start_func(update: Update, context):
+    async def start_func(update: Update, context, session):
+        webapp_url =  config.webapp_url + str(session.user_id)
+        
         markup = ReplyKeyboardMarkup(
             [
-                [KeyboardButton('Search')],
-                [KeyboardButton('Main'), KeyboardButton('Cart')]
+                #[KeyboardButton('Search')],
+                [KeyboardButton('Main'), KeyboardButton('Cart', web_app=WebAppInfo(url=webapp_url))]
             ],
             resize_keyboard=True
         )
@@ -44,7 +46,9 @@ class MainProcess:
 
         message = await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text='Hi',
+            text='Hi, I am your helpful assistant.\n'
+                 'And I am ready to help you find\n'
+                 'what you are looking for!!',
             reply_markup=markup
         )
         return message.message_id
@@ -135,7 +139,8 @@ class MainMenu:
         return display_data
 
     @staticmethod
-    def main_menu_msg():
+    def main_menu_msg(session):
+        webapp_url = config.webapp_url + str(session.user_id)
         markup = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton('🛒 Add to Cart 🛒', callback_data='add_to_cart'),
@@ -166,7 +171,7 @@ class MainMenu:
             image_stream = await send_image_blob(data['name'])
 
             text = f"{data['name']}\n" + "—" * 10 + f"\nPrice: {data['price']}"
-            markup = self.main_menu_msg()
+            markup = self.main_menu_msg(session)
             if image_stream:
                 message= await context.bot.send_photo(
                     chat_id=update.chat.id,
@@ -212,11 +217,14 @@ async def amount_in_table(table_name):
     return 0
 
 async def get_cart_data(session):
+    webapp_url = f"https://7a42-2a02-6ea0-c007-2-f68d-27c0-dbcd-26ec.ngrok-free.app/{session.user_id}"
+
     markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton('✅🛒 Buy 🛒✅', callback_data='buy_cart')],
+        [InlineKeyboardButton('✅🛒 Buy 🛒✅', web_app=WebAppInfo(url=webapp_url))],
         [InlineKeyboardButton('🗑️ Clear cart 🗑️', callback_data='do_clear_cart')],
         [InlineKeyboardButton('⏪ Back ⏪', callback_data='do_return')]
     ])
+
     if session.cart_id:
         data = await cart_data_retrival(session.cart_id)
     else:

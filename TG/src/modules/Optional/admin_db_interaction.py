@@ -2,7 +2,7 @@ import aiosqlite
 from TG.src.config_manager import config
 
 async def make_connection():
-    return aiosqlite.connect(config.db_path)
+    return await aiosqlite.connect(config.db_path)
 
 async def check_existence(table, parameter, value: int):
     conn = await make_connection()
