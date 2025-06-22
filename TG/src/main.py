@@ -203,6 +203,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 MainProcess().clean_up()
+print(config.webapp_url)
 application = ApplicationBuilder().token(config.get_api_key('telegram')).build()
 
 application.add_handler(CommandHandler('start', start))

@@ -1,3 +1,10 @@
+if (window.Telegram && Telegram.WebApp && Telegram.WebApp.colorScheme) {
+    document.addEventListener("DOMContentLoaded", function () {
+        document.body.setAttribute("data-theme", Telegram.WebApp.colorScheme);
+    });
+}
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     const cartId = window.CART_ID;
     const cartItemsDiv = document.getElementById('cart-items');

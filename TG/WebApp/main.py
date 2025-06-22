@@ -1,5 +1,5 @@
 import os, aiosqlite
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -13,6 +13,7 @@ async def make_connection():
 		return None
 
 app = FastAPI()
+router = APIRouter()
 
 
 static_dir = os.path.join(os.path.dirname(__file__), "src")
@@ -122,5 +123,12 @@ async def buy_products(product: dict):
 
     return HTMLResponse(content=html)
 
+
+@router.get("/checkout")
+async def checkout():
+	html_path = os.path.join(static_dir, "checkout.html")
+	with open(html_path, "r", encoding="utf-8") as f:
+		html_content = f.read()
+	return HTMLResponse(content=html_content, media_type="text/html")
 
 

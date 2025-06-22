@@ -36,7 +36,7 @@ async def data_exists(table_name, column_value_pairs):
     cursor = await conn.cursor()
     try:
         where_clause = " AND ".join([f"{col} = ?" for col in column_value_pairs.keys()])
-        query = f"SELECT 1 FROM {table_name} WHERE {where_clause}"
+        query = f"SELECT * FROM {table_name} WHERE {where_clause}"
         await cursor.execute(query, tuple(column_value_pairs.values()))
         if await cursor.fetchone():
             await conn.close()
