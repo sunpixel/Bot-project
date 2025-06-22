@@ -102,11 +102,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         checkoutBtn.disabled = true;
         checkoutBtn.textContent = 'Processing...';
         try {
-            const response = await fetch(`/buy/${cartId}`, { method: 'POST' });
-            const result = await response.json();
-            alert(`Total price: ${result.total.toFixed(2)}`);
+            await fetch(`/checkout`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: cartId}),
+                redirect: 'follow'
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                });
+
+
         } catch (err) {
-            alert('Checkout failed!');
+            alert('Redirection failed!');
         }
         checkoutBtn.disabled = false;
         checkoutBtn.textContent = 'Proceed to Checkout';

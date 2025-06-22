@@ -1,6 +1,6 @@
 import os, aiosqlite
 from fastapi import FastAPI, Request, APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 db_path = os.path.abspath(os.path.join(os.path.dirname(__file__),'..', 'Data', 'DataBase','shop.db'))
@@ -124,11 +124,16 @@ async def buy_products(product: dict):
     return HTMLResponse(content=html)
 
 
-@router.get("/checkout")
-async def checkout():
+
+
+@app.post("/checkout")
+async def checkout(data: dict):
+	id = data.get("id")
+	return RedirectResponse(url=f"/checkout/data", status_code=303)
+
+@app.get(f"/checkout/data")
+async def checkout_cart():
 	html_path = os.path.join(static_dir, "checkout.html")
 	with open(html_path, "r", encoding="utf-8") as f:
 		html_content = f.read()
 	return HTMLResponse(content=html_content, media_type="text/html")
-
-
