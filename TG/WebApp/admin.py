@@ -115,6 +115,7 @@ async def new_entry_products(
     except aiosqlite.Error as e:
         print(f'DB Error: {e}')
         await conn.close()
+        return 0
 
 
 @router.post('/modify_entry')

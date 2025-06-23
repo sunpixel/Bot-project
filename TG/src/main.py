@@ -159,6 +159,21 @@ async def on_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         session.add_message_id(cart_msg.message_id)
 
+    if not context.bot_data.get("handled", False):
+        await session.clean_messages(update.effective_chat.id, context)
+        try:
+            session.add_message_id(update.message.message_id)
+        except Exception as e:
+            print(f"Error deleting user message: {e}")
+        results = get_response(text)
+        if results:
+            _, answer = results[0]
+            sent = await context.bot.send_message(update.effective_chat.id, answer)
+            session.add_message_id(sent.message_id)
+        else:
+            sent = await context.bot.send_message(update.effective_chat.id, "Sorry, I couldn't find an answer to your question.")
+            session.add_message_id(sent.message_id)
+
 async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer(text="Processing...")
@@ -189,16 +204,23 @@ async def callback_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handler(query, session, context)
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Get the user's message text
+    session = get_user_session(update.effective_user.id)
     user_query = update.message.text
-    # Use ML_Embedded to get the best response
+
+    # Delete the user's message
+    try:
+        await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
+    except Exception as e:
+        print(f"Error deleting user message: {e}")
+    await session.clean_messages(update.effective_chat.id, context)
     results = get_response(user_query)
     if results:
-        # results is a list of (question, answer) tuples, take the best one
         _, answer = results[0]
-        await context.bot.send_message(update.effective_chat.id, answer)
+        sent = await context.bot.send_message(update.effective_chat.id, answer)
+        session.add_message_id(sent.message_id)  # Store for later deletion
     else:
-        await context.bot.send_message(update.effective_chat.id, "Sorry, I couldn't find an answer to your question.")
+        sent = await context.bot.send_message(update.effective_chat.id, "Sorry, I couldn't find an answer to your question.")
+        session.add_message_id(sent.message_id)  # Store for later deletion
 
 
 
