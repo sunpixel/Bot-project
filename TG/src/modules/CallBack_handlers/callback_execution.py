@@ -194,6 +194,7 @@ async def get_all_users(is_admin: bool):
 
     await cursor.execute(sql)
     data = await cursor.fetchall()
+    await conn.close()
 
 async def handle_buy_now(callback, session, context):
     pass

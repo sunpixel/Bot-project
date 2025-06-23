@@ -43,6 +43,7 @@ async def on_add_to_cart(session, product_name):
             print(f'Error: {e}')
             await conn.rollback()
             await conn.close()
+    await conn.close()
 
 async def ensure_cart_created(user_id, session):
     conn = await make_connection()

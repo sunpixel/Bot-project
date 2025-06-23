@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from TG.src.modules.Optional.admin_db_interaction import *
 
 class AdminMessageHandler:
@@ -8,17 +8,9 @@ class AdminMessageHandler:
 
     def admin_commands(self):
         if self.is_admin:
+            webapp_url = config.webapp_url + 'admin/'
             buttons = []
-            if 'add_admin' in self.allowed_commands:
-                buttons.append([InlineKeyboardButton('Add Admin', callback_data='admin_add')])
-            if 'delete_admin' in self.allowed_commands:
-                buttons.append([InlineKeyboardButton('Delete Admin', callback_data='admin_delete')])
-            if 'new_entry' in self.allowed_commands:
-                buttons.append([InlineKeyboardButton('New Entry', callback_data='entry_new')])
-            if 'modify_entry' in self.allowed_commands:
-                buttons.append([InlineKeyboardButton('Modify Entry', callback_data='entry_modify')])
-            if 'delete_entry' in self.allowed_commands:
-                buttons.append([InlineKeyboardButton('Delete Entry', callback_data='entry_delete')])
+            buttons.append([InlineKeyboardButton('Add Admin', web_app=WebAppInfo(url=webapp_url))])
             return InlineKeyboardMarkup(buttons)
         return None
 

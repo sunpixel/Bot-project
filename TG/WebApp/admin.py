@@ -1,6 +1,4 @@
 import os, aiosqlite
-import sqlite3
-
 from fastapi import APIRouter, Form, File, UploadFile, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -44,6 +42,7 @@ async def add_admin(data: dict):
     VALUES (?, ?)
     ''', (id[0], commands))
     await conn.commit()
+    await conn.close()
     return 0
 
 @router.post('/delete_admin')
@@ -61,9 +60,11 @@ async def delete_admin(data: dict):
         WHERE username = ?)
         ''', (name,))
         await conn.commit()
+        await conn.close()
         return 0
-    except sqlite3.Error as e:
+    except aiosqlite.Error as e:
         print(f"DB error: {e}")
+        await conn.close()
         return 1
 
 
@@ -110,8 +111,10 @@ async def new_entry_products(
               type,
               float(price)))
         await conn.commit()
-    except sqlite3.Error as e:
+        await conn.close()
+    except aiosqlite.Error as e:
         print(f'DB Error: {e}')
+        await conn.close()
 
 
 @router.post('/modify_entry')
@@ -141,6 +144,7 @@ async def get_users():
     data = await cursor.fetchall()
     for row in data:
         users.append(row[0])
+    await conn.close()
     return {'users': users}
 
 @router.get('/get_admins')
@@ -156,4 +160,5 @@ async def get_admins():
     data = await cursor.fetchall()
     for row in data:
         admins.append(row[0])
+    await conn.close()
     return {'admins': admins}
