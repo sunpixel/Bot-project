@@ -142,3 +142,18 @@ async def get_users():
     for row in data:
         users.append(row[0])
     return {'users': users}
+
+@router.get('/get_admins')
+async def get_admins():
+    conn = await make_connection()
+    cursor = await conn.cursor()
+    admins = []
+    await cursor.execute('''
+    SELECT u.username
+    FROM Users u
+    INNER JOIN admins a ON u.user_id = a.user_id;
+    ''')
+    data = await cursor.fetchall()
+    for row in data:
+        admins.append(row[0])
+    return {'admins': admins}
