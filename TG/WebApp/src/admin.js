@@ -12,7 +12,7 @@ const actions = [
 const forms = {
     add_admin: [
         { label: 'Username', name: 'username', type: 'text', required: true },
-        { label: 'Email', name: 'email', type: 'email', required: true }
+        { label: 'command_list', name: 'email', type: 'email', required: false }
     ],
     delete_admin: [
         { label: 'Username', name: 'username', type: 'text', required: true }
@@ -33,11 +33,11 @@ const tables = [
             { label: 'Image', name: 'image', type: 'file', required: true },
             { label: 'Name', name: 'name', type: 'text', required: true },
             { label: 'Details', name: 'details', type: 'text', required: true },
-            { label: 'Speed', name: 'speed', type: 'number', required: true },
-            { label: 'Capacity', name: 'capacity', type: 'number', required: true },
-            { label: 'Mix Temp', name: 'mix_temp', type: 'number', required: true },
-            { label: 'Max Temp', name: 'max_temp', type: 'number', required: true },
-            { label: 'Type', name: 'type', type: 'text', required: true },
+            { label: 'Speed', name: 'speed', type: 'number', required: false },
+            { label: 'Capacity', name: 'capacity', type: 'number', required: false },
+            { label: 'Min Temp', name: 'min_temp', type: 'number', required: false },
+            { label: 'Max Temp', name: 'max_temp', type: 'number', required: false },
+            { label: 'Type', name: 'type', type: 'text', required: false },
             { label: 'Price', name: 'price', type: 'number', required: true }
         ]
     },
@@ -174,7 +174,7 @@ function showForm(action) {
         try {
             let res;
             if (action.perm === 'new_entry' && form.elements['table'].value === 'Products') {
-                res = await fetch(api, {
+                res = await fetch(api + '/Products', {
                     method: 'POST',
                     body: data
                 });

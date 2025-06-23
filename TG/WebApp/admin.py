@@ -1,7 +1,6 @@
 import os, aiosqlite
 import sqlite3
 
-from Demos.win32ts_logoff_disconnected import username
 from fastapi import APIRouter, Form, File, UploadFile, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -57,27 +56,52 @@ async def delete_admin(data: dict):
         return 1
 
 
-
-
 @router.post('/new_entry')
-async def new_entry(
+async def new_entry(data: dict):
+    print(data)
+
+@router.post('/new_entry/Products')
+async def new_entry_products(
     request: Request,
-    table: str = Form(...),
-    image: UploadFile = File(None),
     name: str = Form(None),
     details: str = Form(None),
     speed: str = Form(None),
     capacity: str = Form(None),
-    mix_temp: str = Form(None),
+    min_temp: str = Form(None),
     max_temp: str = Form(None),
     type: str = Form(None),
-    price: str = Form(None)
+    price: str = Form(None),
+    image: UploadFile = File(None)
 ):
+    print("Endpoint called")  # Debug: see if function is called
     form = await request.form()
     print("Form data:", dict(form))
+    conn = await make_connection()
+    cursor = await conn.cursor()
+
+    image_blob = None
     if image:
-        print("Received file:", image.filename)
-    return 0
+        image_blob = await image.read()
+
+    try:
+        await cursor.execute('''
+            INSERT INTO Products 
+            (image, name, details, speed, capacity, min_temp, max_temp, type, price)
+            VALUES 
+            (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (image_blob,
+              name,
+              details,
+              float(speed),
+              int(capacity),
+              float(min_temp) if min_temp else 0,
+              float(max_temp) if max_temp else 0,
+              type,
+              float(price)))
+        await conn.commit()
+    except sqlite3.Error as e:
+        print(f'DB Error: {e}')
+
 
 @router.post('/modify_entry')
 def modify_entry(data: dict):

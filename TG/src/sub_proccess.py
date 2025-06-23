@@ -217,7 +217,7 @@ async def amount_in_table(table_name):
     return 0
 
 async def get_cart_data(session):
-    webapp_url = f"https://7a42-2a02-6ea0-c007-2-f68d-27c0-dbcd-26ec.ngrok-free.app/{session.user_id}"
+    webapp_url = config.webapp_url + str(session.user_id)
 
     markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('✅🛒 Buy 🛒✅', web_app=WebAppInfo(url=webapp_url))],
