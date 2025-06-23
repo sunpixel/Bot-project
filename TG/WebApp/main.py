@@ -2,6 +2,7 @@ import os, aiosqlite
 from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+import admin
 
 db_path = os.path.abspath(os.path.join(os.path.dirname(__file__),'..', 'Data', 'DataBase','shop.db'))
 
@@ -13,8 +14,8 @@ async def make_connection():
 		return None
 
 app = FastAPI()
-router = APIRouter()
 
+app.include_router(admin.router)
 
 static_dir = os.path.join(os.path.dirname(__file__), "src")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")

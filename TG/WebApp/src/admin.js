@@ -1,11 +1,11 @@
 const userPermissions = ['add_admin', 'delete_admin', 'new_entry', 'modify_entry', 'delete_entry'];
 
 const actions = [
-    { perm: 'add_admin', label: 'Add Admin', api: '/api/add_admin' },
-    { perm: 'delete_admin', label: 'Delete Admin', api: '/api/delete_admin' },
-    { perm: 'new_entry', label: 'New Entry', api: '/api/new_entry' },
-    { perm: 'modify_entry', label: 'Modify Entry', api: '/api/modify_entry' },
-    { perm: 'delete_entry', label: 'Delete Entry', api: '/api/delete_entry' },
+    { perm: 'add_admin', label: 'Add Admin', api: '/admin/add_admin' },
+    { perm: 'delete_admin', label: 'Delete Admin', api: '/admin/delete_admin' },
+    { perm: 'new_entry', label: 'New Entry', api: '/admin/new_entry' },
+    { perm: 'modify_entry', label: 'Modify Entry', api: '/admin/modify_entry' },
+    { perm: 'delete_entry', label: 'Delete Entry', api: '/admin/delete_entry' },
 ];
 
 // Central form field definitions for all actions
