@@ -31,8 +31,19 @@ def admin_root():
     return HTMLResponse(content=html_content, media_type="text/html")
 
 @router.post('/add_admin')
-def add_admin(data: dict):
-    print(data)
+async def add_admin(data: dict):
+    commands = 'new_entry,modify_entry,delete_entry'
+
+    conn = await make_connection()
+    cursor = await conn.cursor()
+
+    await cursor.execute('SELECT user_id FROM Users Where username = ?', (data['username'],))
+    id = await cursor.fetchone()
+    await cursor.execute('''
+    INSERT INTO admins (user_id, commands)
+    VALUES (?, ?)
+    ''', (id[0], commands))
+    await conn.commit()
     return 0
 
 @router.post('/delete_admin')
@@ -114,3 +125,20 @@ def delete_entry(data: dict):
     id = data['entryid']
     return 0
 
+@router.get('/get_users')
+async def get_users():
+    conn = await make_connection()
+    cursor = await conn.cursor()
+    users = []
+    await cursor.execute('''
+    SELECT u.username
+    FROM Users u
+    WHERE NOT EXISTS (
+    SELECT user_id
+    FROM admins a
+    WHERE a.user_id = u.user_id)
+    ''')
+    data = await cursor.fetchall()
+    for row in data:
+        users.append(row[0])
+    return {'users': users}

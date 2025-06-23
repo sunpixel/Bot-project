@@ -11,8 +11,7 @@ const actions = [
 // Central form field definitions for all actions
 const forms = {
     add_admin: [
-        { label: 'Username', name: 'username', type: 'text', required: true },
-        { label: 'command_list', name: 'email', type: 'email', required: false }
+        { label: 'Username', name: 'username', type: 'text', required: true }
     ],
     delete_admin: [
         { label: 'Username', name: 'username', type: 'text', required: true }
@@ -100,6 +99,58 @@ function showForm(action) {
     formContainer.innerHTML = '';
     const form = document.createElement('form');
     form.innerHTML = `<h3>${action.label}</h3>`;
+
+
+if (action.perm === 'add_admin') {
+    fetch('/admin/get_users')
+        .then(res => res.json())
+        .then(data => {
+            if (data.users && data.users.length > 0) {
+                const selectLabel = document.createElement('label');
+                selectLabel.innerHTML = `<span>Username:</span> `;
+                const userSelect = document.createElement('select');
+                userSelect.name = 'username';
+                data.users.forEach(username => {
+                    const option = document.createElement('option');
+                    option.value = username;
+                    option.textContent = username;
+                    userSelect.appendChild(option);
+                });
+                selectLabel.appendChild(userSelect);
+                form.appendChild(selectLabel);
+            } else {
+                form.innerHTML += '<p>No users found.</p>';
+            }
+            // Render the rest of the form fields except username (since it's now a select)
+            renderFields(form, forms[action.perm].filter(f => f.name !== 'username'));
+            form.innerHTML += `<div style="display:flex;justify-content:center;margin-top:28px;">
+                <button type="submit" style="min-width:140px;">Submit</button>
+            </div>`;
+            formContainer.appendChild(form);
+
+            // Attach the submit handler HERE, after form is in DOM
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const data = {
+                    username: form.elements['username'].value
+                };
+                // Add other fields if needed
+                try {
+                    const res = await fetch(action.api, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    alert(result.message || 'Success');
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+                formContainer.innerHTML = '';
+            };
+        });
+    return; // Prevents double appending
+}
 
     if (action.perm === 'new_entry') {
         // Add table selector and dynamic fields container
