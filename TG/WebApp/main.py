@@ -129,11 +129,12 @@ async def buy_products(product: dict):
 @app.post("/checkout")
 async def checkout(data: dict):
 	id = data.get("id")
-	return RedirectResponse(url=f"/checkout/data", status_code=303)
+	return RedirectResponse(url=f"/checkout/data/{id}", status_code=303)
 
-@app.get(f"/checkout/data")
-async def checkout_cart():
+@app.get("/checkout/data/{cart_id}")
+async def checkout_cart(cart_id: int):
 	html_path = os.path.join(static_dir, "checkout.html")
 	with open(html_path, "r", encoding="utf-8") as f:
 		html_content = f.read()
 	return HTMLResponse(content=html_content, media_type="text/html")
+

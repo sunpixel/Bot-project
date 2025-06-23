@@ -1,0 +1,170 @@
+:root {
+    --color-bg: #181c23;
+    --color-section-bg: #232834;
+    --color-text: #f3f6fa;
+    --color-hint: #8a94a7;
+    --color-link: #4ea1f7;
+    --color-button: #4ea1f7;
+    --color-button-text: #181c23;
+    --color-destructive: #ff4b5c;
+    --color-shadow: rgba(0,0,0,0.7);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+#admin-buttons {
+    margin: 40px auto 0 auto;
+    text-align: center;
+}
+
+#admin-buttons button {
+    margin: 10px 10px 10px 0;
+    padding: 12px 28px;
+    font-size: 17px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #4ea1f7 0%, #357ae8 100%);
+    color: var(--color-button-text);
+    box-shadow: 0 2px 8px var(--color-shadow);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+#admin-buttons button:hover {
+    background: linear-gradient(90deg, #357ae8 0%, #4ea1f7 100%);
+    transform: translateY(-2px) scale(1.04);
+}
+
+#form-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 30px;
+}
+
+form {
+    min-width: 320px;
+    margin-top: 0;
+    padding: 28px 32px 24px 32px;
+    background: var(--color-section-bg);
+    border-radius: 12px;
+    border: 1px solid var(--color-hint);
+    box-shadow: 0 4px 24px var(--color-shadow);
+    display: inline-block;
+}
+
+form h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 22px;
+    color: var(--color-link);
+    letter-spacing: 0.5px;
+}
+
+form {
+    min-width: 320px;
+    margin-top: 0;
+    padding: 20px 18px 24px 18px;
+    background: var(--color-section-bg);
+    border-radius: 12px;
+    border: 1px solid var(--color-hint);
+    box-shadow: 0 4px 24px var(--color-shadow);
+    display: inline-block;
+}
+
+form label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px; /* increase this value for more space between rows */
+    font-size: 15px;
+    color: var(--color-text);
+}
+
+form label > span {
+    display: inline-block;
+    min-width: 120px;
+    text-align: right;
+    margin-right: 18px;
+    flex-shrink: 0;
+}
+
+/* Style all relevant input types, textarea, and select */
+form input[type="text"],
+form input[type="number"],
+form input[type="email"],
+form input[type="password"],
+form input[type="file"],
+form input[type="search"],
+form input[type="tel"],
+form input[type="url"],
+form input[type="date"],
+form input[type="datetime-local"],
+form input[type="month"],
+form input[type="week"],
+form input[type="time"],
+form textarea,
+form select {
+    flex: 1;
+    margin-left: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--color-hint);
+    border-radius: 6px;
+    font-size: 15px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    transition: border 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+form select {
+    appearance: none;
+}
+
+form input[type="file"] {
+    padding: 6px 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+    border: 1.5px solid var(--color-link);
+    outline: none;
+    background: var(--color-section-bg);
+}
+
+form input:focus {
+    border: 1.5px solid var(--color-link);
+    outline: none;
+    background: var(--color-section-bg);
+}
+
+form button[type="submit"] {
+    margin-top: 10px;
+    padding: 10px 22px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #4ea1f7 0%, #357ae8 100%);
+    color: var(--color-button-text);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+form button[type="submit"]:hover {
+    background: linear-gradient(90deg, #357ae8 0%, #4ea1f7 100%);
+    transform: translateY(-1px) scale(1.03);
+}

@@ -1,7 +1,6 @@
 document.getElementById('checkoutForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // Clear previous error messages
     const errorMessages = document.querySelectorAll('.error-message');
     errorMessages.forEach(msg => msg.textContent = '');
 
@@ -52,20 +51,16 @@ document.getElementById('checkoutForm').addEventListener('submit', function(even
         isValid = false;
     }
 
-    // If form is valid, proceed with submission
     if (isValid) {
-        // In a real application, you would send the data to a server here
-        alert('Order placed successfully!');
-        this.reset();
+        document.querySelector('.checkout-container').innerHTML = `
+            <h1 style="text-align:center; color:var(--color-text); margin-top: 40px;">Order placed!</h1>
+        `;
     }
 });
 
-// Add real-time validation for better UX
 document.querySelectorAll('#checkoutForm input, #checkoutForm textarea').forEach(input => {
     input.addEventListener('input', function() {
         const errorElement = document.getElementById(`${this.id}Error`);
-        errorElement.textContent = '';
+        if (errorElement) errorElement.textContent = '';
     });
 });
-
-document.addEventListener()

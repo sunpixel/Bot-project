@@ -1,6 +1,22 @@
+:root {
+    --color-bg: #181c23;
+    --color-bg-secondary: #232834;
+    --color-header-bg: #232834;
+    --color-section-bg: #232834;
+    --color-text: #f3f6fa;
+    --color-hint: #8a94a7;
+    --color-link: #4ea1f7;
+    --color-button: #4ea1f7;
+    --color-button-text: #181c23;
+    --color-accent: #4ea1f7;
+    --color-destructive: #ff4b5c;
+    --color-border: #232834;
+    --color-shadow: rgba(0,0,0,0.7);
+}
+
 body {
-    background: var(--tg-theme-bg-color, #f9f9f9);
-    color: var(--tg-theme-text-color, #222);
+    background: var(--color-bg);
+    color: var(--color-text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -9,19 +25,19 @@ body {
 .tg-cart {
     max-width: 420px;
     margin: 40px auto;
-    background: var(--tg-theme-secondary-bg-color, #fff);
+    background: var(--color-bg-secondary);
     border-radius: 18px;
-    box-shadow: 0 6px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 32px var(--color-shadow);
     overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.07);
-    color: var(--tg-theme-text-color, #222);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
 }
 
 .tg-cart-header {
-    background: var(--tg-theme-header-bg-color, #f1f1f1);
-    color: var(--tg-theme-header-text-color, #222);
+    background: var(--color-header-bg);
+    color: var(--color-text);
     padding: 24px 20px 16px 20px;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .tg-cart-header h2 {
@@ -34,7 +50,7 @@ body {
     display: flex;
     justify-content: space-between;
     font-size: 1em;
-    color: var(--tg-theme-text-color, #222);
+    color: var(--color-text);
     opacity: 0.9;
 }
 
@@ -49,7 +65,7 @@ body {
     align-items: center;
     margin-bottom: 18px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .tg-cart-item:last-child {
@@ -58,17 +74,17 @@ body {
 
 .tg-cart-item-name {
     font-weight: 500;
-    color: var(--tg-theme-text-color);
+    color: var(--color-text);
 }
 
 .tg-cart-item-qty {
-    color: var(--tg-theme-hint-color);
+    color: var(--color-hint);
     font-size: 0.95em;
 }
 
 .tg-empty-cart {
     text-align: center;
-    color: var(--tg-theme-hint-color);
+    color: var(--color-hint);
     margin-top: 40px;
 }
 
@@ -80,14 +96,14 @@ body {
 
 .tg-cart-footer {
     padding: 18px 20px;
-    background: var(--tg-theme-secondary-bg-color);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
     text-align: right;
 }
 
 .tg-checkout-btn {
-    background: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
+    background: var(--color-button);
+    color: var(--color-button-text);
     border: none;
     border-radius: 10px;
     padding: 12px 28px;
@@ -95,7 +111,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s, color 0.3s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 6px var(--color-shadow);
 }
 
 .tg-checkout-btn:hover {
@@ -116,8 +132,8 @@ body {
 }
 
 .tg-btn {
-    background: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
+    background: var(--color-button);
+    color: var(--color-button-text);
     border: none;
     border-radius: 6px;
     padding: 4px 10px;
@@ -125,7 +141,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px var(--color-shadow);
 }
 
 .tg-btn:hover {
@@ -133,12 +149,12 @@ body {
 }
 
 .tg-btn-del {
-    background: var(--tg-theme-destructive-text-color);
+    background: var(--color-destructive);
     color: #ffffff;
     font-size: 1.1em;
     padding: 4px 10px;
     border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px var(--color-shadow);
 }
 
 .tg-btn:disabled {
