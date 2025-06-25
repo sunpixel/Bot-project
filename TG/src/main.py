@@ -82,11 +82,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session.add_message_id(update.message.message_id)
     await session.clean_messages(update.effective_chat.id, context)
     session.clear_text_data()
-    await MainProcess().start_func(update, context, session)
+    msg_id = await MainProcess().start_func(update, context, session)
+    session.add_message_id(msg_id)
 
 async def process_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session = get_user_session(update.effective_user.id)
     session.set_user_id(update.effective_user.id)
+    await session.clean_messages(update.effective_chat.id, context)
     await MainProcess().audio(update, context)
     return
 
