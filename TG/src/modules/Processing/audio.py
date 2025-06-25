@@ -4,6 +4,8 @@ from TG.src.modules.Converters.STT import STT
 from TG.src.modules.Converters.TTS import tts_make
 from TG.src.config_manager import config
 
+
+
 async def receive_audio(update, context):
     # Determine if it's audio or voice
     if update.message.audio:
@@ -37,9 +39,15 @@ async def receive_audio(update, context):
 
     return speech, f'{file_id}.wav'
 
-async def check_audio(text, update, context, name):
-    # Simple voice command recognition
+async def check_audio(text, name, update, context):
+    from TG.src.modules.Processing.ML_Embeded import get_response
+    print(f'Entered audio with: {text, name}')
     if text in ['hi']:
-        return tts_make('Hi there brother', filename=name)
+        output = tts_make('Hi there brother', filename=name)
+        return output
     else:
-        return None
+        results = get_response(text)
+        if results:
+            _, answer = results[0]
+            return tts_make(answer, filename=name)
+        return tts_make('I am unable to process your query. Try again.', filename=name)

@@ -57,26 +57,47 @@ class MainProcess:
     async def audio(update: Update, context):
         MainProcess().clean_up()
         data = await receive_audio(update, context)
-        v1 = await check_audio(data[0], update, context, data[1])
+        print(data)
+        chat_id = getattr(getattr(update, 'effective_chat', None), 'id', None)
+        message_id = getattr(getattr(update, 'message', None), 'message_id', None)
+        # Check if receive_audio returned valid data
+        if not data or data[0] is None or data[1] is None:
+            if chat_id:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="No valid audio or voice message detected. Please send a voice or audio message.")
+            return None
+        v1 = await check_audio(data[0], data[1], update, context)
+        if not v1:
+            if chat_id:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Could not process the audio. Please try again with a different message.")
+            return None
         with open(v1, 'rb') as voice_file:
             try:
-                message = await context.bot.send_voice(update.effective_chat.id, voice_file)
+                if chat_id:
+                    message = await context.bot.send_voice(chat_id, voice_file)
+                else:
+                    message = None
             except Exception as e:
-                await context.bot.delete_message(update.effective_chat.id, update.message.message_id)
+                if chat_id and message_id:
+                    await context.bot.delete_message(chat_id, message_id)
                 markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("How to Allow Voice", url="https://core.telegram.org/bots/faq#voice-messages")],
                     [InlineKeyboardButton("Check Privacy Settings", url="https://telegram.org/faq#privacy")],
                     [InlineKeyboardButton("Contact Support", url="https://telegram.org/support")]
                 ])
                 print(e)
-                message = await context.bot.send_message(
-                    update.effective_chat.id,
-                    "<b>An error has occurred while sending your voice message.</b>\n\n"
-                    "Please use the buttons below to get help with fixing common issues:",
-                    reply_markup=markup,
-                    parse_mode=ParseMode.HTML
-                )
-        return message.message_id
+                if chat_id:
+                    message = await context.bot.send_message(
+                        chat_id,
+                        "<b>An error has occurred while sending your voice message.</b>\n\n"
+                        "Please use the buttons below to get help with fixing common issues:",
+                        reply_markup=markup,
+                        parse_mode=ParseMode.HTML
+                    )
+        return message.message_id if message else None
 
 async def db_select_all_data(table):
     conn = await db_connection()

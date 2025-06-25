@@ -16,15 +16,25 @@ model, example_text = torch.hub.load(
 )
 
 def tts_make(text, filename="output.wav"):
-    #audio = model.apply_tts(text=text, speaker='kseniya', sample_rate=48000)
+
+    print('Entered TTS')
+    base_name = os.path.splitext(filename)[0]
+    wav_path = os.path.join(save_path, base_name + ".wav")
+    oga_path = os.path.join(save_path, base_name + ".oga")
+
     audio = model.apply_tts(
         text=text,
         speaker='en_0',  # en_1 is a female voice
         sample_rate=48000
     )
-    # Save as wav file
-    wav_path = os.path.join(save_path, filename)
     sf.write(wav_path, audio, 48000)
-    oga_file = convert_audio(wav_path, output_format='oga')
 
-    return oga_file
+    # Convert wav to oga, ensure output path is used
+    convert_audio(wav_path, oga_path, output_format='oga')
+
+    # Ensure oga_path is a valid file path and exists
+    if os.path.isfile(oga_path):
+        return oga_path
+    else:
+        print(f"TTS: Output file not found or invalid: {oga_path}")
+        return None
